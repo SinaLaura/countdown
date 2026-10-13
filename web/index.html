@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Countdown</title>
+<meta name="theme-color" content="#17171c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Countdown">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root { --bg: #17171c; --fg: #facd3c; --dim: #3a3a44; --text: #f2f2f5; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    transition: background-color .4s, color .4s;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; user-select: none;
+    overflow: hidden;
+  }
+  main {
+    height: 100vh; height: 100dvh;
+    max-width: 640px; margin: 0 auto;
+    display: flex; flex-direction: column;
+    padding: max(28px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right))
+             max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  }
+  .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  [hidden] { display: none !important; }
+  button, input { font: inherit; color: inherit; background: none; border: 0; outline: none; }
+  button { cursor: pointer; touch-action: manipulation; }
+  input { -webkit-user-select: text; user-select: text; }
+  .muted { opacity: .5; }
+
+  /* setup */
+  .center { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 44px; }
+  #label {
+    width: 100%; text-align: center; font-size: 22px; padding: 10px 0;
+    border-bottom: 1px solid var(--dim); transition: border-color .3s;
+  }
+  #label:focus { border-color: var(--fg); }
+  #label::placeholder { color: var(--text); opacity: .35; }
+  .seg { display: flex; justify-content: center; gap: 28px; }
+  .seg button { font-size: 15px; padding: 6px 2px; opacity: .4; border-bottom: 2px solid transparent; }
+  .seg button[aria-pressed="true"] { opacity: 1; border-color: var(--fg); }
+  .stepper { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .step {
+    width: 56px; height: 56px; border-radius: 50%; flex: none;
+    border: 1px solid var(--dim); font-size: 26px; line-height: 1;
+  }
+  .step:active { background: var(--dim); }
+  #minVal, #timeVal { text-align: center; font-size: 64px; font-weight: 700; color: var(--fg); }
+  #minVal { width: 150px; -moz-appearance: textfield; }
+  #minVal::-webkit-inner-spin-button, #minVal::-webkit-outer-spin-button { -webkit-appearance: none; }
+  #timeVal { display: block; margin: 0 auto; font-size: 56px; }
+  .primary {
+    height: 56px; border-radius: 28px; background: var(--fg); color: var(--bg);
+    font-size: 18px; font-weight: 700; transition: background-color .4s, color .4s;
+  }
+  .primary:active { transform: scale(.98); }
+
+  /* countdown */
+  #count { font-size: clamp(34px, 10vw, 48px); font-weight: 700; line-height: 1.1; }
+  #sub { margin-top: 4px; font-size: 15px; min-height: 1.3em; }
+  #stage { flex: 1; min-height: 0; position: relative; margin: 20px 0 8px; }
+  #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .exit { align-self: center; padding: 12px 28px; font-size: 15px; letter-spacing: .06em; }
+
+  /* done */
+  #doneText {
+    flex: 1; display: grid; place-items: center; text-align: center;
+    font-size: clamp(64px, 22vw, 120px); font-weight: 800; color: var(--fg);
+    overflow-wrap: anywhere; animation: pop .6s ease-out;
+  }
+  #doneText.long { font-size: clamp(40px, 12vw, 72px); }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+</style>
+</head>
+<body>
+<main>
+  <form id="setup" class="screen">
+    <div class="center">
+      <input id="label" type="text" maxlength="40" placeholder="What for?" aria-label="What for?" autocomplete="off" enterkeyhint="go">
+
+      <div class="seg" role="group">
+        <button type="button" data-mode="min" aria-pressed="true">Minutes</button>
+        <button type="button" data-mode="time" aria-pressed="false">Time</button>
+      </div>
+
+      <div id="minPane" class="stepper">
+        <button type="button" class="step" data-d="-1" aria-label="less">−</button>
+        <input id="minVal" type="number" inputmode="numeric" min="1" max="999" value="37" aria-label="Minutes">
+        <button type="button" class="step" data-d="1" aria-label="more">+</button>
+      </div>
+      <div id="timePane" hidden>
+        <input id="timeVal" type="time" aria-label="Time">
+      </div>
+    </div>
+    <button class="primary" type="submit">Start</button>
+  </form>
+
+  <section id="run" class="screen" hidden>
+    <h1 id="count">37 min</h1>
+    <p id="sub" class="muted"></p>
+    <div id="stage"><canvas id="canvas"></canvas></div>
+    <button class="exit muted" id="exit" type="button">Exit</button>
+  </section>
+
+  <section id="done" class="screen" hidden>
+    <div id="doneText">DONE!</div>
+    <button id="again" class="primary" type="button">Again</button>
+  </section>
+</main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const TITLE = 'Countdown';
+  const ls = {
+    get(k)    { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+    del(k)    { try { localStorage.removeItem(k); } catch (e) {} },
+  };
+
+  // ================= looks: palettes x modes, shuffled on every tap =================
+
+  const PALETTES = [
+    { bg: '#17171c', fg: '#facd3c', dim: '#3a3a44', text: '#f2f2f5', dark: true },  // night
+    { bg: '#f3eee4', fg: '#e0503a', dim: '#ddd4c3', text: '#2a2a2a' },             // paper
+    { bg: '#10241c', fg: '#8fe0a0', dim: '#2a4a3c', text: '#e6f4e9', dark: true },  // forest
+    { bg: '#0a2342', fg: '#4fd8e0', dim: '#1f4068', text: '#e0f7fa', dark: true },  // ocean
+    { bg: '#2b1a3b', fg: '#ff8a5c', dim: '#4a3360', text: '#ffd9b8', dark: true },  // dusk
+    { bg: '#e6f5ee', fg: '#178a6c', dim: '#c6e3d6', text: '#0e3b30' },             // mint
+    { bg: '#fff0f3', fg: '#f0507f', dim: '#f4d2db', text: '#5a2638' },             // blush
+    { bg: '#000000', fg: '#ffffff', dim: '#2e2e2e', text: '#ffffff', dark: true },  // mono
+    { bg: '#fbf5d8', fg: '#2d3ca0', dim: '#e9e0b2', text: '#2d3ca0' },             // cobalt
+    { bg: '#1a0e09', fg: '#ff5233', dim: '#3e2318', text: '#ffb39c', dark: true },  // ember
+    { bg: '#ece8ff', fg: '#6a4cf0', dim: '#d5cef7', text: '#2c2060' },             // lavender
+    { bg: '#0a0d0a', fg: '#39ff6a', dim: '#163a20', text: '#39ff6a', dark: true },  // terminal
+  ];
+
+  // layout: positions for n items in a w x h box, plus item size d
+  const MODES = [
+    { name: 'dots',     shape: 'circle',  lay: (n, w, h) => grid(n, w, h, 1.6, 1.6) },
+    { name: 'squares',  shape: 'square',  lay: (n, w, h) => grid(n, w, h, 1.5, 1.5) },
+    { name: 'snake',    shape: 'circle',  snake: true, lay: (n, w, h) => grid(n, w, h, 1.45, 1.45, { snake: true }) },
+    { name: 'spiral',   shape: 'circle',  guide: 'path', lay: spiral },
+    { name: 'clock',    shape: 'circle',  guide: 'ring', lay: ring },
+    { name: 'bars',     shape: 'bar',     lay: (n, w, h) => grid(n, w, h, 1.8, 3.6, { max: 26 }) },
+    { name: 'honey',    shape: 'hex',     lay: (n, w, h) => grid(n, w, h, 0.95, 0.82, { offset: true, max: 56 }) },
+    { name: 'rings',    shape: 'ring',    lay: (n, w, h) => grid(n, w, h, 1.5, 1.3, { offset: true }) },
+    { name: 'diamonds', shape: 'diamond', hit: 0.4, lay: (n, w, h) => grid(n, w, h, 1.1, 0.55, { offset: true, max: 68 }) },
+    { name: 'tiles',    shape: 'tri',     hit: 0.3, lay: (n, w, h) => grid(n, w, h, 0.58, 0.95, { max: 76 }) },
+  ];
+
+  function grid(n, w, h, cw, ch, opt) {
+    opt = opt || {};
+    const ex = opt.offset ? 0.5 : 0;
+    let d = opt.max || 48, cols = 1, rows = 1;
+    for (; d > 2; d -= 0.5) {
+      cols = Math.max(1, Math.min(n, Math.floor((w - d) / (cw * d) + 1 - ex)));
+      rows = Math.ceil(n / cols);
+      if ((rows - 1) * ch * d + d <= h && (cols - 1 + ex) * cw * d + d <= w) break;
+    }
+    const bw = (cols - 1 + (rows > 1 ? ex : 0)) * cw * d, bh = (rows - 1) * ch * d;
+    const x0 = (w - bw) / 2, y0 = (h - bh) / 2, pts = [];
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / cols);
+      let c = i % cols;
+      if (opt.snake && r % 2) c = cols - 1 - c;
+      pts.push({ x: x0 + (c + (ex && r % 2 ? ex : 0)) * cw * d, y: y0 + r * ch * d, up: (r + c) % 2 === 0 });
+    }
+    return { pts, d };
+  }
+
+  // archimedean spiral, first item in the middle -> time runs out from the outside in
+  function spiral(n, w, h) {
+    const raw = [];
+    let th = Math.PI;
+    for (let i = 0; i < n; i++) {
+      const r = th / (2 * Math.PI);
+      raw.push({ x: r * Math.cos(th), y: r * Math.sin(th) });
+      th += 1 / Math.max(r, 0.5);
+    }
+    const R = Math.max.apply(null, raw.map(p => Math.hypot(p.x, p.y))) + 0.5;
+    const k = Math.min(w, h) / 2 / R;
+    return { pts: raw.map(p => ({ x: w / 2 + p.x * k, y: h / 2 + p.y * k })), d: Math.min(0.72 * k, 56) };
+  }
+
+  // one circle like a clock face, starting at 12 o'clock
+  function ring(n, w, h) {
+    const R0 = Math.min(w, h) / 2;
+    let d = Math.min(44, R0 * 0.3, 2 * Math.PI * R0 / n * 0.65);
+    const R = R0 - d / 2 - 4;
+    d = Math.min(d, 2 * Math.PI * R / n * 0.65);
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + i * 2 * Math.PI / n;
+      pts.push({ x: w / 2 + R * Math.cos(a), y: h / 2 + R * Math.sin(a) });
+    }
+    return { pts, d, circle: { x: w / 2, y: h / 2, r: R } };
+  }
+
+  function bag(n) {
+    let q = [];
+    return cur => {
+      if (!q.length) {
+        q = Array.from({ length: n }, (_, i) => i).filter(i => i !== cur);
+        for (let i = q.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [q[i], q[j]] = [q[j], q[i]]; }
+      }
+      return q.pop();
+    };
+  }
+  const nextMode = bag(MODES.length), nextPal = bag(PALETTES.length);
+
+  let look = ls.get('countdown-look');
+  if (!look || !MODES[look.m] || !PALETTES[look.p]) look = { m: 0, p: 0 };
+
+  function applyPalette() {
+    const p = PALETTES[look.p], root = document.documentElement;
+    for (const k of ['bg', 'fg', 'dim', 'text']) root.style.setProperty('--' + k, p[k]);
+    root.style.colorScheme = p.dark ? 'dark' : 'light';
+    document.querySelector('meta[name=theme-color]').content = p.bg;
+  }
+  applyPalette();
+
+  // ================= setup =================
+
+  let end = 0, total = 0, timer = 0, shownMin = -1, label = '';
+  let mode = 'min', minutes = ls.get('countdown-min') || 37, audio = null, wake = null;
+
+  const show = id => document.querySelectorAll('.screen').forEach(s => s.hidden = s.id !== id);
+  const fmt = ts => new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+  const minInput = $('minVal'), timeInput = $('timeVal'), labelInput = $('label');
+  labelInput.value = ls.get('countdown-label') || '';
+  function setMinutes(v) { minutes = Math.max(1, Math.min(999, Math.round(v) || 1)); minInput.value = minutes; }
+  setMinutes(minutes);
+  minInput.onchange = () => setMinutes(+minInput.value);
+
+  // +/- : tap for one, hold to run
+  document.querySelectorAll('.step').forEach(b => {
+    let t1 = 0, t2 = 0;
+    const go = () => setMinutes(minutes + +b.dataset.d);
+    const stopHold = () => { clearTimeout(t1); clearInterval(t2); };
+    b.addEventListener('pointerdown', e => { e.preventDefault(); go(); t1 = setTimeout(() => t2 = setInterval(go, 70), 400); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stopHold));
+    b.addEventListener('click', e => { if (e.detail === 0) go(); });  // keyboard
+  });
+
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
+    $('minPane').hidden = m !== 'min';
+    $('timePane').hidden = m !== 'time';
+    if (m === 'time' && !timeInput.value) timeInput.value = fmt(Date.now() + minutes * 60000);
+  }
+  document.querySelectorAll('.seg button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+
+  function endFromTime(str) {
+    const [h, m] = str.split(/[:.]/).map(Number);
+    const d = new Date(); d.setHours(h, m || 0, 0, 0);
+    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
+    return d.getTime();
+  }
+
+  $('setup').onsubmit = e => {
+    e.preventDefault();
+    unlockAudio();
+    label = labelInput.value.trim();
+    ls.set('countdown-label', label);
+    if (mode === 'time') {
+      if (!timeInput.value) return timeInput.focus();
+      begin(endFromTime(timeInput.value));
+    } else {
+      setMinutes(+minInput.value);
+      ls.set('countdown-min', minutes);
+      begin(Date.now() + minutes * 60000);
+    }
+  };
+
+  // ================= countdown =================
+
+  function begin(e, t) {
+    end = e;
+    total = t || Math.max(1, Math.ceil((end - Date.now()) / 60000));
+    ls.set('countdown', { end, total, label });
+    shownMin = -1;
+    goneAt.clear(); pulses.clear();
+    $('sub').textContent = label ? label + ' · ' + fmt(end) : fmt(end);
+    show('run');
+    born = performance.now();
+    relayout();
+    clearInterval(timer);
+    timer = setInterval(tick, 1000);
+    tick();
+    keepAwake();
+    scheduleAlarm();
+  }
+
+  function tick() {
+    const left = end - Date.now();
+    if (left <= 1000) return finish();
+    const min = Math.min(total, Math.ceil(left / 60000));
+    if (min === shownMin) return;
+    if (shownMin > 0) for (let i = min; i < shownMin; i++) goneAt.set(i, performance.now());
+    shownMin = min;
+    $('count').textContent = min + ' min';
+    document.title = min + ' min · ' + (label || TITLE);
+    kick();
+  }
+
+  function stop() {
+    clearInterval(timer);
+    letSleep();
+    cancelAlarm();
+    ls.del('countdown');
+    end = 0;
+    document.title = TITLE;
+    show('setup');
+  }
+  $('exit').onclick = stop;
+  $('again').onclick = stop;
+
+  function finish(quiet) {
+    clearInterval(timer);
+    letSleep();
+    const text = (label ? label : 'Done').toUpperCase() + '!';
+    $('doneText').textContent = text;
+    $('doneText').classList.toggle('long', text.length > 8);
+    document.title = text;
+    show('done');
+    if (quiet) return;
+    beep();
+    if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]);
+  }
+
+  // ================= drawing =================
+
+  const canvas = $('canvas'), ctx = canvas.getContext('2d');
+  let W = 0, H = 0, geo = { pts: [], d: 0 }, born = 0, raf = 0;
+  const goneAt = new Map(), pulses = new Map();
+  const still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function relayout() {
+    const r = $('stage').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    W = r.width; H = r.height;
+    if (!W || !H) return;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    geo = MODES[look.m].lay(total, W, H);
+    kick();
+  }
+  window.addEventListener('resize', () => { if (!$('run').hidden) relayout(); });
+
+  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+  function frame(now) { raf = 0; if (!$('run').hidden && draw(now)) kick(); }
+
+  const clamp = t => t < 0 ? 0 : t > 1 ? 1 : t;
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const easeBack = t => { const c = 1.7; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+  function mix(a, b, t) {
+    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    const ch = s => Math.round(((pa >> s) & 255) * (1 - t) + ((pb >> s) & 255) * t);
+    return 'rgb(' + ch(16) + ',' + ch(8) + ',' + ch(0) + ')';
+  }
+
+  function shape(kind, p, x, y, d, g) {
+    const c = ctx, r = d / 2;
+    c.beginPath();
+    if (kind === 'circle') c.arc(x, y, r, 0, Math.PI * 2);
+    else if (kind === 'square') { if (c.roundRect) c.roundRect(x - r, y - r, d, d, d * 0.2); else c.rect(x - r, y - r, d, d); }
+    else if (kind === 'bar') {
+      const hh = d * (3 - 2 * g) / 2;
+      if (c.roundRect) c.roundRect(x - r, y - hh, d, hh * 2, r); else c.rect(x - r, y - hh, d, hh * 2);
+    }
+    else if (kind === 'ring') {
+      if (g < 0.5) { c.lineWidth = d * 0.16; c.arc(x, y, r - d * 0.08, 0, Math.PI * 2); c.stroke(); return; }
+      c.arc(x, y, r, 0, Math.PI * 2);
+    }
+    else if (kind === 'hex') for (let k = 0; k < 6; k++) { const a = -Math.PI / 2 + k * Math.PI / 3; c.lineTo(x + r * Math.cos(a), y + r * Math.sin(a)); }
+    else if (kind === 'diamond') { c.moveTo(x, y - r); c.lineTo(x + r, y); c.lineTo(x, y + r); c.lineTo(x - r, y); }
+    else if (kind === 'tri') {
+      const hh = d * 0.866 / 2, s = p.up ? 1 : -1;
+      c.moveTo(x, y - s * hh); c.lineTo(x + r, y + s * hh); c.lineTo(x - r, y + s * hh);
+    }
+    c.closePath();
+    c.fill();
+  }
+
+  // returns true while something is still animating
+  function draw(now) {
+    const c = ctx, M = MODES[look.m], P = PALETTES[look.p], pts = geo.pts, d = geo.d, n = pts.length;
+    let busy = false;
+    c.clearRect(0, 0, W, H);
+    if (!n) return false;
+
+    const all = still ? 1 : clamp((now - born) / 500);
+    if (all < 1) busy = true;
+    const stag = Math.min(14, 500 / n);
+    const intro = i => { const t = still ? 1 : clamp((now - born - i * stag) / 380); if (t < 1) busy = true; return easeBack(t); };
+    const gone = i => {
+      if (i < shownMin) return 0;
+      const t0 = goneAt.get(i);
+      if (t0 === undefined) return 1;
+      const t = still ? 1 : clamp((now - t0) / 800);
+      if (t < 1) busy = true; else goneAt.delete(i);
+      return easeOut(t);
+    };
+
+    c.lineCap = c.lineJoin = 'round';
+    c.globalAlpha = all;
+    if (M.guide === 'path') {
+      c.strokeStyle = P.dim; c.lineWidth = Math.max(1, d * 0.08);
+      c.beginPath(); pts.forEach(p => c.lineTo(p.x, p.y)); c.stroke();
+    } else if (M.guide === 'ring') {
+      c.strokeStyle = P.dim; c.lineWidth = Math.max(1, d * 0.08);
+      c.beginPath(); c.arc(geo.circle.x, geo.circle.y, geo.circle.r, 0, Math.PI * 2); c.stroke();
+    } else if (M.snake && shownMin > 0) {
+      // body runs through all remaining items, the tail retracts as minutes pass
+      c.strokeStyle = P.fg; c.lineWidth = d * 0.42;
+      c.beginPath();
+      for (let i = 0; i < Math.min(shownMin, n); i++) c.lineTo(pts[i].x, pts[i].y);
+      if (shownMin < n && goneAt.has(shownMin)) {
+        const g = gone(shownMin), a = pts[shownMin - 1], b = pts[shownMin];
+        c.lineTo(a.x + (b.x - a.x) * (1 - g), a.y + (b.y - a.y) * (1 - g));
+      }
+      c.stroke();
+    }
+    c.globalAlpha = 1;
+
+    for (let i = 0; i < n; i++) {
+      const p = pts[i], g = gone(i);
+      let pk = 0, pt = pulses.get(i), pt01 = 0;
+      if (pt !== undefined) {
+        pt01 = (now - pt) / 450;
+        if (pt01 >= 1) pulses.delete(i); else { busy = true; pk = Math.sin(Math.PI * pt01); }
+      }
+      const size = d * (1 - 0.65 * g) * intro(i) * (1 + 0.3 * pk);
+      if (size <= 0.2) continue;
+      c.fillStyle = c.strokeStyle = mix(P.fg, P.dim, g);
+      shape(M.shape, p, p.x, p.y, size, g);
+      if (pk) {
+        c.globalAlpha = 1 - pt01; c.strokeStyle = P.fg; c.lineWidth = 2;
+        c.beginPath(); c.arc(p.x, p.y, d * (0.55 + 0.6 * pt01), 0, Math.PI * 2); c.stroke();
+        c.globalAlpha = 1;
+      }
+    }
+
+    // snake eyes
+    if (M.snake && shownMin > 0 && d > 12) {
+      const p = pts[0], e = d * 0.09 * intro(0);
+      c.fillStyle = P.bg;
+      c.beginPath(); c.arc(p.x - d * 0.16, p.y - d * 0.06, e, 0, Math.PI * 2); c.arc(p.x + d * 0.16, p.y - d * 0.06, e, 0, Math.PI * 2); c.fill();
+    }
+    return busy;
+  }
+
+  function hitTest(x, y) {
+    const M = MODES[look.m], d = geo.d;
+    let hit = -1, best = Infinity;
+    for (let i = 0; i < Math.min(shownMin, geo.pts.length); i++) {
+      const p = geo.pts[i], dx = Math.abs(p.x - x), dy = Math.abs(p.y - y);
+      const inside = M.shape === 'bar' ? dx < d * 0.7 && dy < d * 1.6 : Math.hypot(dx, dy) < d * (M.hit || 0.55);
+      if (inside && dx + dy < best) { best = dx + dy; hit = i; }
+    }
+    return hit;
+  }
+
+  function restyle() {
+    look = { m: nextMode(look.m), p: nextPal(look.p) };
+    ls.set('countdown-look', look);
+    applyPalette();
+    born = performance.now();
+    pulses.clear();
+    relayout();
+  }
+
+  // tap an item -> it pulses; tap anywhere else -> new look
+  $('run').addEventListener('pointerdown', e => {
+    if (e.target.closest('.exit')) return;
+    const r = canvas.getBoundingClientRect();
+    const i = hitTest(e.clientX - r.left, e.clientY - r.top);
+    if (i >= 0) {
+      pulses.set(i, performance.now());
+      if (navigator.vibrate) navigator.vibrate(8);
+      kick();
+    } else restyle();
+  });
+
+  // on the end screen a tap just swaps the colours
+  $('done').addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    look.p = nextPal(look.p);
+    ls.set('countdown-look', look);
+    applyPalette();
+  });
+
+  // ================= sound (browsers only allow it after a tap, so we unlock on Start) =================
+
+  function unlockAudio() {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      audio.resume();
+    } catch (e) {}
+  }
+  document.addEventListener('pointerdown', unlockAudio);
+
+  function beep() {
+    if (!audio) return;
+    audio.resume();
+    let t = audio.currentTime + 0.05;
+    for (const [f, dur] of [[880, .4], [880, .4], [1100, .6]]) {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = 'square';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.2, t + 0.01);
+      g.gain.setValueAtTime(0.2, t + dur - 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(audio.destination);
+      o.start(t); o.stop(t + dur);
+      t += dur + 0.08;
+    }
+  }
+
+  // ================= native app (Capacitor): alarm even when the phone is locked =================
+  // In the browser this does nothing. In the store app it uses @capacitor/local-notifications.
+
+  const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()
+    ? window.Capacitor.Plugins : null;
+
+  function scheduleAlarm() {
+    const LN = native && native.LocalNotifications;
+    if (!LN) return;
+    LN.requestPermissions()
+      .then(() => LN.schedule({ notifications: [{
+        id: 1, title: (label || 'Done') + '!', body: 'Time is up.',
+        schedule: { at: new Date(end), allowWhileIdle: true },
+      }] }))
+      .catch(() => {});
+  }
+  function cancelAlarm() {
+    const LN = native && native.LocalNotifications;
+    if (LN) LN.cancel({ notifications: [{ id: 1 }] }).catch(() => {});
+  }
+
+  // ================= keep the screen on while counting down =================
+
+  async function keepAwake() {
+    try {
+      if ('wakeLock' in navigator && !wake && document.visibilityState === 'visible') {
+        wake = await navigator.wakeLock.request('screen');
+        wake.addEventListener('release', () => wake = null);
+      }
+    } catch (e) {}
+  }
+  function letSleep() { try { if (wake) wake.release(); } catch (e) {} wake = null; }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !$('run').hidden) { tick(); keepAwake(); }
+  });
+
+  // ================= start: ?m=37 or ?bis=18:30 (optional &t=Lunch, &look=3) starts right away =================
+
+  const q = new URLSearchParams(location.search);
+  const saved = ls.get('countdown');
+  ls.del('essen');
+  if (q.has('look')) { const v = q.get('look').split('.').map(Number); look = { m: (v[0] || 0) % MODES.length, p: (v[1] || 0) % PALETTES.length }; applyPalette(); }
+  if (saved) label = saved.label || '';
+  if (q.has('m') || q.has('bis')) {
+    history.replaceState(null, '', location.pathname);
+    label = (q.get('t') || '').trim().slice(0, 40);
+    if (q.has('bis')) begin(endFromTime(q.get('bis')));
+    else { setMinutes(+q.get('m')); begin(Date.now() + minutes * 60000); }
+  } else if (saved && saved.end > Date.now()) {
+    begin(saved.end, saved.total);
+  } else if (saved && Date.now() - saved.end < 15 * 60000) {
+    finish(true);
+  } else {
+    ls.del('countdown');
+  }
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script>
+</body>
+</html>
