@@ -518,7 +518,7 @@
     end = e;
     pausedAt = 0;
     $('run').classList.remove('paused');
-    $('pause').textContent = "I'm going to the kitchen";
+    $('pause').textContent = awayText();
     total = t || Math.max(1, Math.ceil((end - Date.now()) / 60000));
     ls.set('countdown', { end, total, label });
     shownMin = -1;
@@ -533,6 +533,25 @@
     keepAwake();
     scheduleAlarm();
     if (paused) pause();
+  }
+
+  // the pause button says something different every day
+  const AWAY = [
+    "I'm going to the kitchen",
+    "I'm gonna do the laundry",
+    "I'm watering the plants",
+    "I'm taking out the trash",
+    "I'm grabbing a snack",
+    "I'm making a cup of tea",
+    "I'm stretching my legs",
+    "I'm answering the door",
+    "I'm feeding the cat",
+    "I'm getting some fresh air",
+    "I'm doing the dishes",
+  ];
+  function awayText() {
+    const day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+    return AWAY[day % AWAY.length];
   }
 
   // pause: the remaining time is kept and the end moves back by however long the break was
@@ -553,7 +572,7 @@
     pausedAt = 0;
     ls.set('countdown', { end, total, label });
     $('run').classList.remove('paused');
-    $('pause').textContent = "I'm going to the kitchen";
+    $('pause').textContent = awayText();
     $('sub').textContent = subText();
     document.title = shownMin + ' left · ' + (label || TITLE);
     timer = setInterval(tick, 1000);
