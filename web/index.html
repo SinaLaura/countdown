@@ -82,6 +82,8 @@
     overflow-wrap: anywhere; animation: pop .6s ease-out;
   }
   #art { width: 100%; height: 34vh; }
+  #doneText.shake { animation: pop .6s ease-out, shake .45s ease-out; }
+  @keyframes shake { 0%, 100% { translate: 0 0; } 20% { translate: -10px 4px; } 40% { translate: 8px -6px; } 60% { translate: -6px 3px; } 80% { translate: 3px -2px; } }
   #doneText.long { font-size: clamp(40px, 12vw, 72px); }
   @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
 </style>
@@ -173,12 +175,12 @@
     // balls with gravity in a jar, tapping kicks them up, a passed minute pops
     { name: 'jar', shape: 'circle', hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 450, lay: jar, step: jarStep, pos: ballPos, tap: jarTap, before: drawJar },
     // crawling caterpillar, turns into a butterfly at the end
-    { name: 'caterpillar', shape: 'circle', live: true, body: 0.8, eyes: true, stripes: true, butterfly: true,
+    { name: 'caterpillar', shape: 'circle', live: true, body: 0.8, eyes: true, stripes: true, endArt: 'butterfly',
       lay: (n, w, h) => grid(n, w, h, 0.78, 1.6, { snake: true, max: 40 }), pos: crawl, after: antennae },
     // sand runs from the top bulb into the bottom one
     { name: 'hourglass', shape: 'circle', goneScale: 1, goneDim: 0.55, goneMs: 1400, lay: hourglass, pos: grainPos, before: glass },
     // a burning fuse with sparks
-    { name: 'fuse', shape: 'circle', live: true, goneScale: 0.4, lay: fuse, step: fuseStep, before: fuseLine, after: sparks },
+    { name: 'fuse', shape: 'circle', live: true, endArt: 'bang', goneScale: 0.4, lay: fuse, step: fuseStep, before: fuseLine, after: sparks },
     // a bar of chocolate, pieces break off and leave a dashed gap
     { name: 'chocolate', keepHit: true, goneScale: 1, goneDim: 0, goneMs: 1100, lay: (n, w, h) => grid(n, w, h, 1.06, 0.9, { max: 52 }),
       pos: chunkPos, item: chunk, before: chunkHoles },
@@ -187,6 +189,8 @@
     // twinkling constellation, stars go out one by one
     { name: 'stars', live: true, hit: 0.8, goneScale: 0.25, lay: stars, pos: twinkle, item: star, before: starLines },
     // a cute spider, its legs drop off one by one
+    // a shy hedgehog loses its spines and blushes more and more
+    { name: 'hedgehog', live: true, goneScale: 0.5, goneMs: 1500, lay: hedgehog, pos: hogPos, item: spine, after: hogBody },
     { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody },
   ];
 
@@ -398,6 +402,25 @@
     return { pts, d: lw, spider: { cx, cy, R, rb } };
   }
 
+  // a hedgehog facing right; spines in rows over its back, the outer row falls first
+  function hedgehog(n, w, h) {
+    const R = Math.min(w * 0.3, h * 0.26), ry = R * 0.68, cx = w * 0.44, cy = h * 0.56, rnd = seeded(n * 17 + 5);
+    const a0 = Math.PI * 0.92, a1 = Math.PI * 1.9, arc = (R + ry) / 2 * (a1 - a0);
+    const rows = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(arc / 9)))), per = Math.ceil(n / rows);
+    const wid = Math.min(16, arc / per * 1.4), len = R * 0.62, pts = [];
+    for (let i = 0; i < n; i++) {
+      const row = Math.floor(i / per), k = i % per, cnt = Math.min(per, n - row * per);
+      const ang = cnt === 1 ? Math.PI * 1.45 : lerp(a0, a1, (k + (row % 2) * 0.5) / (cnt - 0.5 * (row % 2 ? 0 : 1) || 1));
+      const s = 1 - 0.1 * (rows - 1 - row);   // inner rows sit a little lower on the back
+      const bx = cx + Math.cos(ang) * R * 0.9 * s, by = cy + Math.sin(ang) * ry * 0.9 * s;
+      pts.push({
+        x: bx + Math.cos(ang) * len / 2, y: by + Math.sin(ang) * len / 2, ang, len, wid, hr: len * 0.45,
+        lx: cx + (rnd() - 0.5) * w * 0.7, ly: h - 10 - rnd() * 6, spin: (rnd() - 0.5) * 6,
+      });
+    }
+    return { pts, d: wid, hog: { cx, cy, R, ry } };
+  }
+
   function bag(n) {
     let q = [];
     return cur => {
@@ -550,6 +573,7 @@
     end = 0;
     pausedAt = 0;
     $('run').classList.remove('paused');
+    endArt('');
     document.title = TITLE;
     show('setup');
   }
@@ -564,8 +588,9 @@
     $('doneText').classList.toggle('long', text.length > 8);
     document.title = text;
     show('done');
-    butterfly(!!MODES[look.m].butterfly);
+    endArt(MODES[look.m].endArt);
     if (quiet) return;
+    if (artKind === 'bang') boom();
     beep();
     if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]);
   }
@@ -939,6 +964,50 @@
     c.beginPath(); c.arc(x, y + r * 0.16, r * 0.16, Math.PI * 0.15, Math.PI * 0.85); c.stroke();
   }
 
+  // ---- hedgehog ----
+  function hogPos(X, i, g, p) {
+    if (g <= 0) return null;
+    return { x: lerp(p.x, p.lx, g), y: lerp(p.y, p.ly, g * g), r: p.spin * g };
+  }
+  function spine(X, i, x, y, k, q, p) {
+    const c = X.c, l = p.len / 2, w = p.wid / 2;
+    c.save(); c.translate(x, y); c.rotate(p.ang + (q ? q.r : 0)); c.scale(k, k);
+    c.beginPath(); c.moveTo(-l, -w); c.lineTo(l, 0); c.lineTo(-l, w); c.closePath(); c.fill();
+    c.restore();
+  }
+  function hogBody(X) {
+    const { c, P } = X, Hg = X.geo.hog, k = easeBack(X.all);
+    if (k <= 0) return;
+    const { cx, cy, R, ry } = Hg, n = X.n, bare = n ? clamp(1 - X.min / n) : 0;   // how much of the coat is gone
+    const face = mix(P.fg, '#ffffff', 0.45), body = mix(P.fg, P.bg, 0.35);
+    c.save(); c.translate(cx, cy); c.scale(k, k);
+    c.fillStyle = body;
+    for (const fx of [-0.45, 0.35]) { c.beginPath(); c.ellipse(R * fx, ry * 0.92, R * 0.14, ry * 0.12, 0, 0, TAU); c.fill(); }   // feet
+    c.beginPath(); c.ellipse(0, 0, R, ry, 0, 0, TAU); c.fill();
+    c.fillStyle = face;
+    c.beginPath(); c.ellipse(R * 0.62, ry * 0.12, R * 0.48, ry * 0.58, -0.15, 0, TAU); c.fill();
+    c.fillStyle = P.bg;
+    c.beginPath(); c.arc(R * 1.07, ry * 0.08, R * 0.07, 0, TAU); c.fill();   // nose
+    // the more spines are gone, the redder the cheeks; near the end the eye looks away shyly
+    c.globalAlpha = 0.25 + 0.75 * bare;
+    c.fillStyle = mix(P.fg, '#ff5d8f', 0.55);
+    c.beginPath(); c.ellipse(R * 0.62, ry * 0.32, R * 0.12, ry * 0.08, 0, 0, TAU); c.fill();
+    c.globalAlpha = 1;
+    const ex = R * 0.62, ey = -ry * 0.12;
+    if (bare > 0.7) {
+      c.strokeStyle = P.bg; c.lineWidth = R * 0.035; c.lineCap = 'round';
+      c.beginPath(); c.arc(ex, ey + R * 0.03, R * 0.06, Math.PI * 1.1, Math.PI * 1.9); c.stroke();
+    } else {
+      const open = X.still || X.now % 3800 > 150 ? 1 : 0.12;
+      c.fillStyle = P.bg;
+      c.beginPath(); c.ellipse(ex, ey, R * 0.07, R * 0.07 * open, 0, 0, TAU); c.fill();
+      if (open === 1) { c.fillStyle = '#ffffff'; c.beginPath(); c.arc(ex + R * 0.025, ey - R * 0.025, R * 0.022, 0, TAU); c.fill(); }
+    }
+    c.strokeStyle = P.bg; c.lineWidth = R * 0.025;
+    c.beginPath(); c.arc(R * 0.92, ry * 0.24, R * 0.07, Math.PI * 0.2, Math.PI * 0.8); c.stroke();
+    c.restore();
+  }
+
   // returns true while something is still animating
   function draw(now) {
     const c = ctx, M = MODES[look.m], P = PALETTES[look.p], pts = geo.pts, d = geo.d, n = pts.length;
@@ -1087,38 +1156,67 @@
     } else if (!onDrawing(x, y)) restyle();
   });
 
-  // ---- butterfly on the end screen (after the caterpillar) ----
-  let artRaf = 0;
-  function butterfly(on) {
+  // ---- animation on the end screen: butterfly (after the caterpillar) or a bang (after the fuse) ----
+  let artRaf = 0, artKind = '';
+  function endArt(kind) {
     const cv = $('art');
-    cv.hidden = !on;
+    artKind = kind || '';
+    cv.hidden = !kind;
     cancelAnimationFrame(artRaf);
-    if (!on) return;
-    const x = cv.getContext('2d');
+    $('doneText').classList.remove('shake');
+    if (!kind) return;
+    const x = cv.getContext('2d'), t0 = performance.now(), P0 = PALETTES[look.p];
+    let bits = [];
+    if (kind === 'bang') {
+      void $('doneText').offsetWidth;   // restart the css animation
+      $('doneText').classList.add('shake');
+      const cols = [P0.fg, nudge(P0.fg), nudge(P0.fg), mix(P0.fg, '#ffffff', 0.6), P0.text];
+      for (let i = 0; i < 160; i++) {
+        const a = Math.random() * TAU, v = 120 + Math.random() * 520;
+        bits.push({ vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 1.5 + Math.random() * 3.5, col: cols[i % cols.length] });
+      }
+    }
     const loop = now => {
       if ($('done').hidden) return;
       const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
       if (cv.width !== Math.round(r.width * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
       x.setTransform(dpr, 0, 0, dpr, 0, 0);
       x.clearRect(0, 0, r.width, r.height);
-      const P = PALETTES[look.p], s = Math.min(r.width, r.height) * 0.42, t = still ? 0 : now / 1000;
-      const f = still ? 1 : 0.3 + 0.7 * Math.abs(Math.cos(t * 4));
-      x.save();
-      x.translate(r.width / 2 + Math.sin(t * 0.9) * s * 0.25, r.height / 2 + Math.sin(t * 1.7) * s * 0.12);
-      for (const side of [-1, 1]) {
-        x.save(); x.scale(side * f, 1);
-        x.fillStyle = P.fg; x.beginPath(); x.ellipse(s * 0.42, -s * 0.18, s * 0.42, s * 0.3, -0.5, 0, TAU); x.fill();
-        x.fillStyle = mix(P.fg, P.text, 0.35); x.beginPath(); x.ellipse(s * 0.3, s * 0.25, s * 0.26, s * 0.2, 0.5, 0, TAU); x.fill();
+      const P = PALETTES[look.p];
+      let more = !still;
+      if (kind === 'butterfly') {
+        const s = Math.min(r.width, r.height) * 0.42, t = still ? 0 : now / 1000;
+        const f = still ? 1 : 0.3 + 0.7 * Math.abs(Math.cos(t * 4));
+        x.save();
+        x.translate(r.width / 2 + Math.sin(t * 0.9) * s * 0.25, r.height / 2 + Math.sin(t * 1.7) * s * 0.12);
+        for (const side of [-1, 1]) {
+          x.save(); x.scale(side * f, 1);
+          x.fillStyle = P.fg; x.beginPath(); x.ellipse(s * 0.42, -s * 0.18, s * 0.42, s * 0.3, -0.5, 0, TAU); x.fill();
+          x.fillStyle = mix(P.fg, P.text, 0.35); x.beginPath(); x.ellipse(s * 0.3, s * 0.25, s * 0.26, s * 0.2, 0.5, 0, TAU); x.fill();
+          x.restore();
+        }
+        x.strokeStyle = P.text; x.lineCap = 'round';
+        x.lineWidth = s * 0.08; x.beginPath(); x.moveTo(0, -s * 0.3); x.lineTo(0, s * 0.4); x.stroke();
+        x.lineWidth = s * 0.025; x.beginPath();
+        x.moveTo(0, -s * 0.3); x.quadraticCurveTo(-s * 0.1, -s * 0.55, -s * 0.22, -s * 0.62);
+        x.moveTo(0, -s * 0.3); x.quadraticCurveTo(s * 0.1, -s * 0.55, s * 0.22, -s * 0.62);
+        x.stroke();
         x.restore();
+      } else {
+        // flash, shock ring, then sparks that slow down, sink and fade
+        const e = still ? 0.35 : (now - t0) / 1000, cx = r.width / 2, cy = r.height * 0.6;
+        if (e < 0.3) { x.globalAlpha = 1 - e / 0.3; x.fillStyle = P.text; x.beginPath(); x.arc(cx, cy, 30 + e * 600, 0, TAU); x.fill(); }
+        if (e < 0.7) { x.globalAlpha = 1 - e / 0.7; x.strokeStyle = P.fg; x.lineWidth = 3; x.beginPath(); x.arc(cx, cy, e * 700, 0, TAU); x.stroke(); }
+        const k = (1 - Math.exp(-3 * e)) / 3;
+        x.globalAlpha = Math.max(0, 1 - e / 2.4);
+        for (const b of bits) {
+          x.fillStyle = b.col;
+          x.beginPath(); x.arc(cx + b.vx * k, cy + b.vy * k + 120 * e * e, b.r, 0, TAU); x.fill();
+        }
+        x.globalAlpha = 1;
+        if (e > 2.4) more = false;
       }
-      x.strokeStyle = P.text; x.lineCap = 'round';
-      x.lineWidth = s * 0.08; x.beginPath(); x.moveTo(0, -s * 0.3); x.lineTo(0, s * 0.4); x.stroke();
-      x.lineWidth = s * 0.025; x.beginPath();
-      x.moveTo(0, -s * 0.3); x.quadraticCurveTo(-s * 0.1, -s * 0.55, -s * 0.22, -s * 0.62);
-      x.moveTo(0, -s * 0.3); x.quadraticCurveTo(s * 0.1, -s * 0.55, s * 0.22, -s * 0.62);
-      x.stroke();
-      x.restore();
-      if (!still) artRaf = requestAnimationFrame(loop);
+      if (more) artRaf = requestAnimationFrame(loop);
     };
     artRaf = requestAnimationFrame(loop);
   }
@@ -1129,7 +1227,7 @@
     look.p = nextPal(look.p);
     ls.set('countdown-look', look);
     applyPalette();
-    if (!$('art').hidden && still) butterfly(true);
+    if (artKind && still) endArt(artKind);
   });
 
   // ================= sound (browsers only allow it after a tap, so we unlock on Start) =================
@@ -1302,6 +1400,20 @@
       [1046.5, 1568].forEach((f, k) => voice(a, out, f, t + 0.15 + k * 0.08, 1.3, 0.06, 'sine', 0.01));
     }],
   ];
+
+  function boom() {
+    if (!audio) return;
+    const a = audio, t = a.currentTime + 0.02, len = Math.floor(a.sampleRate * 0.5);
+    const buf = a.createBuffer(1, len, a.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    const src = a.createBufferSource(), lp = a.createBiquadFilter(), g = a.createGain();
+    src.buffer = buf; lp.type = 'lowpass'; lp.frequency.value = 900; g.gain.value = 0.5;
+    src.connect(lp).connect(g).connect(a.destination); src.start(t);
+    const o = a.createOscillator(), og = a.createGain();
+    o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.4);
+    og.gain.setValueAtTime(0.5, t); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+    o.connect(og).connect(a.destination); o.start(t); o.stop(t + 0.5);
+  }
 
   // play a random end sound, never the same one twice in a row
   let lastSound = -1;
