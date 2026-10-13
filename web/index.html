@@ -105,7 +105,7 @@
   </form>
 
   <section id="run" class="screen" hidden>
-    <h1 id="count">37 min</h1>
+    <h1 id="count">37 min left</h1>
     <p id="sub" class="muted"></p>
     <div id="stage"><canvas id="canvas"></canvas></div>
     <button class="exit muted" id="exit" type="button">Exit</button>
@@ -290,7 +290,7 @@
     total = t || Math.max(1, Math.ceil((end - Date.now()) / 60000));
     ls.set('countdown', { end, total, label });
     shownMin = -1;
-    goneAt.clear(); pulses.clear();
+    goneAt.clear(); pulses.clear(); tints.clear();
     $('sub').textContent = label ? label + ' · ' + fmt(end) : fmt(end);
     show('run');
     born = performance.now();
@@ -309,8 +309,8 @@
     if (min === shownMin) return;
     if (shownMin > 0) for (let i = min; i < shownMin; i++) goneAt.set(i, performance.now());
     shownMin = min;
-    $('count').textContent = min + ' min';
-    document.title = min + ' min · ' + (label || TITLE);
+    $('count').textContent = min + ' min left';
+    document.title = min + ' min left · ' + (label || TITLE);
     kick();
   }
 
@@ -343,7 +343,7 @@
 
   const canvas = $('canvas'), ctx = canvas.getContext('2d');
   let W = 0, H = 0, geo = { pts: [], d: 0 }, born = 0, raf = 0;
-  const goneAt = new Map(), pulses = new Map();
+  const goneAt = new Map(), pulses = new Map(), tints = new Map();
   const still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function relayout() {
@@ -366,7 +366,26 @@
   function mix(a, b, t) {
     const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
     const ch = s => Math.round(((pa >> s) & 255) * (1 - t) + ((pb >> s) & 255) * t);
-    return 'rgb(' + ch(16) + ',' + ch(8) + ',' + ch(0) + ')';
+    return '#' + ((1 << 24) + (ch(16) << 16) + (ch(8) << 8) + ch(0)).toString(16).slice(1);
+  }
+  // a random neighbour of a colour: hue turned a bit, lightness nudged
+  function nudge(hex) {
+    const v = parseInt(hex.slice(1), 16), r = (v >> 16 & 255) / 255, g = (v >> 8 & 255) / 255, b = (v & 255) / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, dl = mx - mn;
+    let h = 0, s = 0;
+    if (dl) {
+      s = dl / (1 - Math.abs(2 * l - 1));
+      h = mx === r ? ((g - b) / dl + 6) % 6 : mx === g ? (b - r) / dl + 2 : (r - g) / dl + 4;
+      h *= 60;
+    }
+    h = (h + (Math.random() < 0.5 ? -1 : 1) * (10 + Math.random() * 20) + 360) % 360;
+    const step = 0.05 + Math.random() * 0.12;
+    const L = l > 0.85 ? l - step : l < 0.15 ? l + step : Math.min(0.85, Math.max(0.2, l + (Math.random() - 0.5) * 0.14));
+    const S = s < 0.1 ? 0 : Math.min(1, s);   // greys stay grey, just lighter/darker
+    const C = (1 - Math.abs(2 * L - 1)) * S, X = C * (1 - Math.abs(h / 60 % 2 - 1)), m = L - C / 2;
+    const [r1, g1, b1] = h < 60 ? [C, X, 0] : h < 120 ? [X, C, 0] : h < 180 ? [0, C, X] : h < 240 ? [0, X, C] : h < 300 ? [X, 0, C] : [C, 0, X];
+    const to = x => Math.round((x + m) * 255);
+    return '#' + ((1 << 24) + (to(r1) << 16) + (to(g1) << 8) + to(b1)).toString(16).slice(1);
   }
 
   function shape(kind, p, x, y, d, g) {
@@ -442,7 +461,14 @@
       }
       const size = d * (1 - 0.65 * g) * intro(i) * (1 + 0.3 * pk);
       if (size <= 0.2) continue;
-      c.fillStyle = c.strokeStyle = mix(P.fg, P.dim, g);
+      let col = P.fg;
+      const tn = tints.get(i);
+      if (tn) {
+        const tt = clamp((now - tn.t0) / 350);
+        if (tt < 1) busy = true;
+        col = mix(tn.from, tn.to, still ? 1 : tt);
+      }
+      c.fillStyle = c.strokeStyle = mix(col, P.dim, g);
       shape(M.shape, p, p.x, p.y, size, g);
       if (pk) {
         c.globalAlpha = 1 - pt01; c.strokeStyle = P.fg; c.lineWidth = 2;
@@ -463,12 +489,12 @@
   function hitTest(x, y) {
     const M = MODES[look.m], d = geo.d;
     let hit = -1, best = Infinity;
-    for (let i = 0; i < Math.min(shownMin, geo.pts.length); i++) {
+    for (let i = 0; i < geo.pts.length; i++) {
       const p = geo.pts[i], dx = Math.abs(p.x - x), dy = Math.abs(p.y - y);
       const inside = M.shape === 'bar' ? dx < d * 0.7 && dy < d * 1.6 : Math.hypot(dx, dy) < d * (M.hit || 0.55);
       if (inside && dx + dy < best) { best = dx + dy; hit = i; }
     }
-    return hit;
+    return hit;   // may also be a past item
   }
 
   function restyle() {
@@ -476,7 +502,7 @@
     ls.set('countdown-look', look);
     applyPalette();
     born = performance.now();
-    pulses.clear();
+    pulses.clear(); tints.clear();
     relayout();
   }
 
@@ -485,8 +511,16 @@
     if (e.target.closest('.exit')) return;
     const r = canvas.getBoundingClientRect();
     const i = hitTest(e.clientX - r.left, e.clientY - r.top);
+    if (i >= shownMin) return;   // past item: nothing happens
     if (i >= 0) {
-      pulses.set(i, performance.now());
+      const now = performance.now();
+      pulses.set(i, now);
+      // sometimes the item also takes on a slightly different colour
+      if (Math.random() < 0.45) {
+        // always a neighbour of the palette colour, so repeated taps don't drift away
+        const base = PALETTES[look.p].fg, tn = tints.get(i);
+        tints.set(i, { from: tn ? tn.to : base, to: nudge(base), t0: now });
+      }
       if (navigator.vibrate) navigator.vibrate(8);
       kick();
     } else restyle();
