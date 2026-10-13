@@ -190,8 +190,10 @@
     { name: 'stars', live: true, hit: 0.8, goneScale: 0.25, lay: stars, pos: twinkle, item: star, before: starLines },
     // a cute spider, its legs drop off one by one
     // a shy hedgehog loses its spines and blushes more and more
-    { name: 'hedgehog', live: true, goneScale: 0.5, goneMs: 1500, lay: hedgehog, pos: hogPos, item: spine, after: hogBody },
+    { name: 'hedgehog', live: true, goneScale: 0.5, goneMs: 1500, lay: hedgehog, pos: hogPos, item: spine, after: hogBody, bodyTap: hogTap },
     { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody },
+    // toy cars pottering around, tapping one makes it zoom off a bit, a passed minute drives off screen
+    { name: 'cars', live: true, hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 3000, lay: cars, step: carStep, pos: carPos, item: car, tap: carTap },
   ];
 
   const TAU = Math.PI * 2;
@@ -400,6 +402,15 @@
       });
     }
     return { pts, d: lw, spider: { cx, cy, R, rb } };
+  }
+
+  // toy cars parked at random spots, facing random ways; d is the car length
+  function cars(n, w, h) {
+    const rnd = seeded(n * 7 + 3), d = Math.max(8, Math.min(46, Math.sqrt(0.27 * w * h / n))), pts = [];
+    for (let i = 0; i < n; i++) {
+      pts.push({ x: d + rnd() * Math.max(1, w - 2 * d), y: d + rnd() * Math.max(1, h - 2 * d), a: rnd() * TAU, turn: 0, boost: 0, v: 0 });
+    }
+    return { pts, d };
   }
 
   // a hedgehog facing right; spines in rows over its back, the outer row falls first
@@ -964,9 +975,113 @@
     c.beginPath(); c.arc(x, y + r * 0.16, r * 0.16, Math.PI * 0.15, Math.PI * 0.85); c.stroke();
   }
 
+  // ---- cars ----
+  const angDiff = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
+  const turnTo = (a, b, max) => a + Math.max(-max, Math.min(max, angDiff(a, b)));
+  function carStep(X, dt) {
+    const d = X.geo.d, P = X.pts, m = d * 0.9;
+    if (X.min < 0) return false;
+    for (let i = 0; i < P.length; i++) {
+      const p = P[i];
+      if (p.out) continue;
+      if (i >= X.min) {
+        // a passed minute: head for the nearest edge, speed up and leave
+        if (!p.leaving) {
+          if (X.still || X.gone(i) >= 1) { p.out = true; continue; }
+          p.leaving = true;
+          p.exit = [[p.x, Math.PI], [W - p.x, 0], [p.y, -Math.PI / 2], [H - p.y, Math.PI / 2]].sort((a, b) => a[0] - b[0])[0][1];
+        }
+        p.a = turnTo(p.a, p.exit, 3 * dt);
+        p.v = Math.min(d * 8, p.v + d * 6 * dt);
+      } else {
+        if (X.still) continue;
+        // wander: the steering drifts randomly, near the edges it pulls back towards the middle
+        p.turn = Math.max(-1.5, Math.min(1.5, (p.turn + (Math.random() - 0.5) * 8 * dt) * (1 - dt)));
+        if (p.x < m || p.x > W - m || p.y < m || p.y > H - m) p.a = turnTo(p.a, Math.atan2(H / 2 - p.y, W / 2 - p.x), 2.5 * dt);
+        p.a += p.turn * dt;
+        p.boost *= Math.exp(-dt * 1.6);
+        p.v = d * 0.7 + p.boost;
+      }
+      p.x += Math.cos(p.a) * p.v * dt;
+      p.y += Math.sin(p.a) * p.v * dt;
+      if (p.leaving) { if (p.x < -d || p.x > W + d || p.y < -d || p.y > H + d) p.out = true; }
+      else { p.x = Math.max(d * 0.4, Math.min(W - d * 0.4, p.x)); p.y = Math.max(d * 0.4, Math.min(H - d * 0.4, p.y)); }
+    }
+    // gently push overlapping cars apart (skipped for huge counts, the cars are tiny then anyway)
+    const live = Math.min(X.min, P.length);
+    if (!X.still && live <= 200) {
+      const min = d * 0.7, m2 = min * min;
+      for (let i = 0; i < live; i++) for (let j = i + 1; j < live; j++) {
+        const a = P[i], b = P[j], dx = b.x - a.x, dy = b.y - a.y, dd = dx * dx + dy * dy;
+        if (dd >= m2 || dd < 1e-6) continue;
+        const dist = Math.sqrt(dd), push = (min - dist) / 2 * Math.min(1, dt * 8);
+        a.x -= dx / dist * push; a.y -= dy / dist * push; b.x += dx / dist * push; b.y += dy / dist * push;
+      }
+    }
+    return false;
+  }
+  function carPos(X, i, g, p) { return { x: p.x, y: p.y, r: p.a, a: p.out ? 0 : 1 }; }
+  function carTap(G, i) {
+    const p = G.pts[i];
+    p.boost = G.d * 7;
+    p.turn += (Math.random() - 0.5) * 2;
+  }
+  // a toy car seen from above: wheels, body, windows around the roof, headlights
+  function car(X, i, x, y, k, q, p, col) {
+    const c = X.c, P = X.P, L = X.d * k, B = L * 0.52;
+    c.save(); c.translate(x, y); c.rotate(q ? q.r : p.a);
+    c.fillStyle = mix(P.dim, P.text, 0.3);
+    for (const sx of [-0.3, 0.3]) for (const sy of [-1, 1]) { rr(c, sx * L - L * 0.11, sy * B * 0.5 - B * 0.13, L * 0.22, B * 0.26, L * 0.04); c.fill(); }
+    c.fillStyle = col;
+    rr(c, -L / 2, -B / 2, L, B, B * 0.35); c.fill();
+    c.fillStyle = mix(col, P.bg, 0.55);
+    rr(c, -L * 0.22, -B * 0.34, L * 0.44, B * 0.68, B * 0.18); c.fill();
+    c.fillStyle = col;
+    rr(c, -L * 0.17, -B * 0.27, L * 0.24, B * 0.54, B * 0.12); c.fill();
+    c.fillStyle = mix(col, '#ffffff', 0.7);
+    for (const sy of [-1, 1]) { c.beginPath(); c.arc(L * 0.43, sy * B * 0.29, B * 0.09, 0, TAU); c.fill(); }
+    c.restore();
+  }
+
   // ---- hedgehog ----
+  // tapping the body: a happy hop with bristling spines, or a quick shake
+  function hogMotion(X) {
+    const Hg = X.geo.hog, r = Hg.react;
+    const none = { on: false, dx: 0, dy: 0, rot: 0, sp: 1, lift: 0 };
+    if (!r || X.still) return none;
+    const t = (X.now - r.t0) / 700;
+    if (t >= 1) { Hg.react = null; return none; }
+    const s = Math.sin(Math.PI * t);
+    if (r.kind === 0) return { on: true, dx: 0, dy: -s * Hg.R * 0.35, rot: 0, sp: 1 + 0.4 * s, lift: s };
+    const w = Math.sin(t * TAU * 3) * (1 - t);
+    return { on: true, dx: w * Hg.R * 0.08, dy: 0, rot: w * 0.1, sp: 1 + 0.2 * s, lift: 0 };
+  }
+  function hogTap(G, x, y) {
+    const Hg = G.hog, ex = (x - Hg.cx - Hg.R * 0.1) / (Hg.R * 1.2), ey = (y - Hg.cy) / (Hg.ry * 1.1);
+    if (ex * ex + ey * ey > 1) return false;
+    Hg.react = { t0: performance.now(), kind: Math.random() < 0.5 ? 0 : 1 };
+    squeak();
+    return true;
+  }
+  function squeak() {
+    if (!audio) return;
+    const a = audio, t = a.currentTime + 0.01, o = a.createOscillator(), g = a.createGain();
+    o.frequency.setValueAtTime(900, t);
+    o.frequency.exponentialRampToValueAtTime(1700, t + 0.08);
+    o.frequency.exponentialRampToValueAtTime(1200, t + 0.16);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.08, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+    o.connect(g).connect(a.destination);
+    o.start(t); o.stop(t + 0.2);
+  }
   function hogPos(X, i, g, p) {
-    if (g <= 0) return null;
+    if (g <= 0) {
+      const m = hogMotion(X), Hg = X.geo.hog;
+      if (!m.on) return null;
+      const rx = p.x - Hg.cx, ry = p.y - Hg.cy, co = Math.cos(m.rot), si = Math.sin(m.rot);
+      return { x: Hg.cx + rx * co - ry * si + m.dx, y: Hg.cy + rx * si + ry * co + m.dy, r: m.rot, s: m.sp };
+    }
     return { x: lerp(p.x, p.lx, g), y: lerp(p.y, p.ly, g * g), r: p.spin * g };
   }
   function spine(X, i, x, y, k, q, p) {
@@ -979,8 +1094,12 @@
     const { c, P } = X, Hg = X.geo.hog, k = easeBack(X.all);
     if (k <= 0) return;
     const { cx, cy, R, ry } = Hg, n = X.n, bare = n ? clamp(1 - X.min / n) : 0;   // how much of the coat is gone
-    const face = mix(P.fg, '#ffffff', 0.45), body = mix(P.fg, P.bg, 0.35);
-    c.save(); c.translate(cx, cy); c.scale(k, k);
+    const face = mix(P.fg, '#ffffff', 0.45), body = mix(P.fg, P.bg, 0.35), m = hogMotion(X);
+    if (m.lift) {   // shadow stays on the ground while it hops
+      c.fillStyle = P.dim;
+      c.beginPath(); c.ellipse(cx, cy + ry * 1.05, R * (0.8 - 0.3 * m.lift), ry * 0.1, 0, 0, TAU); c.fill();
+    }
+    c.save(); c.translate(cx + m.dx, cy + m.dy); c.rotate(m.rot); c.scale(k, k);
     c.fillStyle = body;
     for (const fx of [-0.45, 0.35]) { c.beginPath(); c.ellipse(R * fx, ry * 0.92, R * 0.14, ry * 0.12, 0, 0, TAU); c.fill(); }   // feet
     c.beginPath(); c.ellipse(0, 0, R, ry, 0, 0, TAU); c.fill();
@@ -994,7 +1113,10 @@
     c.beginPath(); c.ellipse(R * 0.62, ry * 0.32, R * 0.12, ry * 0.08, 0, 0, TAU); c.fill();
     c.globalAlpha = 1;
     const ex = R * 0.62, ey = -ry * 0.12;
-    if (bare > 0.7) {
+    if (m.on) {   // happy squint
+      c.strokeStyle = P.bg; c.lineWidth = R * 0.035; c.lineCap = 'round';
+      c.beginPath(); c.arc(ex, ey + R * 0.04, R * 0.065, Math.PI * 1.15, Math.PI * 1.85); c.stroke();
+    } else if (bare > 0.7) {
       c.strokeStyle = P.bg; c.lineWidth = R * 0.035; c.lineCap = 'round';
       c.beginPath(); c.arc(ex, ey + R * 0.03, R * 0.06, Math.PI * 1.1, Math.PI * 1.9); c.stroke();
     } else {
@@ -1151,6 +1273,9 @@
         tints.set(i, { from: tn ? tn.to : base, to: nudge(base), t0: now });
       }
       if (M.tap) M.tap(geo, i);
+      if (navigator.vibrate) navigator.vibrate(8);
+      kick();
+    } else if (MODES[look.m].bodyTap && MODES[look.m].bodyTap(geo, x, y)) {
       if (navigator.vibrate) navigator.vibrate(8);
       kick();
     } else if (!onDrawing(x, y)) restyle();
