@@ -65,6 +65,7 @@
   .primary:active { transform: scale(.98); }
 
   /* countdown */
+  #count, #sub { width: fit-content; }
   #count { font-size: clamp(34px, 10vw, 48px); font-weight: 700; line-height: 1.1; }
   #sub { margin-top: 4px; font-size: 15px; min-height: 1.3em; }
   #stage { flex: 1; min-height: 0; position: relative; margin: 20px 0 8px; }
@@ -951,11 +952,22 @@
     relayout();
   }
 
-  // tap an item -> it pulses; tap anywhere else -> new look
+  // is anything drawn near this point (planet, jar, stem, lines ...)? those are neutral, a tap does nothing
+  function onDrawing(x, y) {
+    const k = canvas.width / W, rad = 8;
+    const sx = Math.max(0, Math.floor((x - rad) * k)), sy = Math.max(0, Math.floor((y - rad) * k));
+    const sw = Math.min(canvas.width, Math.ceil((x + rad) * k)) - sx, sh = Math.min(canvas.height, Math.ceil((y + rad) * k)) - sy;
+    if (sw <= 0 || sh <= 0) return false;
+    const a = ctx.getImageData(sx, sy, sw, sh).data;
+    for (let j = 3; j < a.length; j += 4) if (a[j] > 20) return true;
+    return false;
+  }
+
+  // tap an item -> it pulses; tap on empty background -> new look; anything else -> nothing
   $('run').addEventListener('pointerdown', e => {
-    if (e.target.closest('.exit')) return;
-    const r = canvas.getBoundingClientRect();
-    const i = hitTest(e.clientX - r.left, e.clientY - r.top);
+    if (e.target.closest('.exit, #count, #sub')) return;
+    const r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    const i = hitTest(x, y);
     if (i >= shownMin) return;   // past item: nothing happens
     if (i >= 0) {
       const now = performance.now(), M = MODES[look.m];
@@ -969,7 +981,7 @@
       if (M.tap) M.tap(geo, i);
       if (navigator.vibrate) navigator.vibrate(8);
       kick();
-    } else restyle();
+    } else if (!onDrawing(x, y)) restyle();
   });
 
   // ---- butterfly on the end screen (after the caterpillar) ----
