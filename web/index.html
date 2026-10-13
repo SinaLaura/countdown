@@ -66,6 +66,7 @@
 
   /* countdown */
   #count, #sub { width: fit-content; }
+  .nohead #count, .nohead #sub { display: none; }
   #count { font-size: clamp(34px, 10vw, 48px); font-weight: 700; line-height: 1.1; }
   #sub { margin-top: 4px; font-size: 15px; min-height: 1.3em; }
   #stage { flex: 1; min-height: 0; position: relative; margin: 20px 0 8px; }
@@ -191,6 +192,8 @@
     // a cute spider, its legs drop off one by one
     // a shy hedgehog loses its spines and blushes more and more
     { name: 'hedgehog', live: true, goneScale: 0.5, goneMs: 1500, lay: hedgehog, pos: hogPos, item: spine, after: hogBody, bodyTap: hogTap },
+    // people in a cinema, one leaves per minute; the countdown runs on the screen instead of the headline
+    { name: 'cinema', live: true, noHead: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: cinema, pos: leave, item: person, before: cinemaScreen },
     { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody },
     // toy cars pottering around, tapping one makes it zoom off a bit, a passed minute drives off screen
     { name: 'cars', live: true, hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 3000, lay: cars, step: carStep, pos: carPos, item: car, tap: carTap },
@@ -432,6 +435,40 @@
     return { pts, d: wid, hog: { cx, cy, R, ry } };
   }
 
+  // a cinema: screen on top, curved rows of seats, back rows bigger; people leave in random order
+  function cinema(n, w, h) {
+    const sh = Math.min(h * 0.3, w * 0.86 / 1.9), sw = sh * 1.9, sx = (w - sw) / 2, sy = 6, cx = w / 2;
+    const top = sy + sh + Math.max(20, h * 0.06), avail = h - top - 6;
+    let best = null;
+    for (let rows = 1; rows <= n; rows++) {
+      const per = Math.ceil(n / rows), sc = j => rows === 1 ? 1 : 0.75 + 0.35 * j / (rows - 1);
+      let sum = 0;
+      for (let j = 0; j < rows; j++) sum += sc(j) * 1.3;
+      const s0 = Math.min(60, 0.94 * w / (per * 1.12 * sc(rows - 1)), avail / sum);
+      if (!best || s0 > best.s0) best = { rows, per, s0, sc };
+      if (per === 1) break;
+    }
+    const { rows, per, s0, sc } = best, seats = [];
+    let y = top;
+    for (let j = 0; j < rows; j++) {
+      const s = s0 * sc(j), cnt = Math.min(per, n - j * per);
+      y += s * 0.55;
+      for (let k = 0; k < cnt; k++) {
+        const x = cx + (k - (cnt - 1) / 2) * s * 1.12;
+        seats.push({ x, y: y - Math.pow((x - cx) / (w / 2), 2) * s * 0.5, s, ex: x < cx ? -s : w + s, hr: s * 0.45 });
+      }
+      y += s * 0.75;
+    }
+    const shift = Math.max(0, (avail - (y - top)) / 2);   // few people: sit in the middle of the hall
+    seats.forEach(p => p.y += shift);
+    // who leaves when is random, but the same every time for this length
+    const rnd = seeded(n * 23 + 9), perm = seats.map((_, i) => i);
+    for (let i = perm.length - 1; i > 0; i--) { const j = rnd() * (i + 1) | 0; [perm[i], perm[j]] = [perm[j], perm[i]]; }
+    const pts = perm.map(k => seats[k]);
+    const order = pts.map((_, i) => i).sort((a, b) => pts[a].y - pts[b].y);   // far rows first
+    return { pts, d: s0, order, cinema: { sx, sy, sw, sh } };
+  }
+
   function bag(n) {
     let q = [];
     return cur => {
@@ -636,6 +673,7 @@
   const still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function relayout() {
+    $('run').classList.toggle('nohead', !!MODES[look.m].noHead);
     const r = $('stage').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
     W = r.width; H = r.height;
     if (!W || !H) return;
@@ -1152,6 +1190,42 @@
     c.restore();
   }
 
+  // ---- cinema ----
+  const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+  function leave(X, i, g, p) {
+    if (g <= 0) return null;
+    const up = Math.min(1, g / 0.25), walk = clamp((g - 0.25) / 0.75);
+    return {
+      x: lerp(p.x, p.ex, walk),
+      y: p.y - up * p.s * 0.45 - Math.abs(Math.sin(walk * 25)) * p.s * 0.06,
+      a: g >= 1 ? 0 : 1 - clamp((walk - 0.8) / 0.2),
+    };
+  }
+  function person(X, i, x, y, k, q, p) {
+    const c = X.c, s = p.s * k;
+    c.beginPath(); c.arc(x, y - s * 0.32, s * 0.2, 0, TAU); c.fill();
+    rr(c, x - s * 0.36, y - s * 0.12, s * 0.72, s * 0.5, s * 0.22); c.fill();
+    if (!p.g) { c.fillStyle = X.P.dim; rr(c, x - s * 0.5, y + s * 0.12, s, s * 0.42, s * 0.12); c.fill(); }   // own seat hides the legs
+  }
+  function cinemaScreen(X) {
+    const { c, P, pts } = X, S = X.geo.cinema, fl = X.still ? 1 : 0.93 + 0.07 * Math.random();
+    c.globalAlpha = 0.06 * X.all; c.fillStyle = P.text;   // projector light
+    c.beginPath(); c.moveTo(S.sx, S.sy + S.sh); c.lineTo(S.sx + S.sw, S.sy + S.sh); c.lineTo(W * 0.56, H); c.lineTo(W * 0.44, H); c.fill();
+    c.globalAlpha = X.all * fl;
+    c.fillStyle = mix(P.text, P.bg, 0.08);
+    rr(c, S.sx, S.sy, S.sw, S.sh, 6); c.fill();
+    // the countdown is the movie
+    c.fillStyle = P.bg; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = '700 ' + Math.round(S.sh * 0.34) + 'px ' + FONT;
+    c.fillText(pausedAt ? 'paused' : X.min + ' left', S.sx + S.sw / 2, S.sy + S.sh * 0.45);
+    c.globalAlpha = X.all * fl * 0.6;
+    c.font = Math.round(S.sh * 0.1) + 'px ' + FONT;
+    c.fillText(label ? label + ' · ' + fmt(end) : fmt(end), S.sx + S.sw / 2, S.sy + S.sh * 0.76);
+    c.globalAlpha = X.all;
+    c.fillStyle = P.dim;   // empty seats
+    for (const p of pts) { rr(c, p.x - p.s / 2, p.y + p.s * 0.12, p.s, p.s * 0.42, p.s * 0.12); c.fill(); }
+  }
+
   // returns true while something is still animating
   function draw(now) {
     const c = ctx, M = MODES[look.m], P = PALETTES[look.p], pts = geo.pts, d = geo.d, n = pts.length;
@@ -1207,7 +1281,7 @@
 
     const gs = M.goneScale === undefined ? 0.35 : M.goneScale, gd = M.goneDim === undefined ? 1 : M.goneDim;
     for (let k = 0; k < n; k++) {
-      const i = M.reverse ? n - 1 - k : k, p = pts[i], g = p.g, q = p.q;
+      const i = geo.order ? geo.order[k] : M.reverse ? n - 1 - k : k, p = pts[i], g = p.g, q = p.q;
       let pk = 0, pt01 = 0;
       const pt = pulses.get(i);
       if (pt !== undefined) {
