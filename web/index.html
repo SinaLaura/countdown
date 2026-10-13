@@ -1142,41 +1142,177 @@
   }
   document.addEventListener('pointerdown', unlockAudio);
 
-  // soft rising sweep, then a shimmering chord with a space echo
+  // one oscillator through a gain envelope: quick (or slow) attack, exponential fade
+  function voice(a, dest, f, t, dur, peak, type, att) {
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + (att || 0.01));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(dest);
+    o.start(t); o.stop(t + dur + 0.05);
+    return o;
+  }
+
+  // output with a space echo; every sound plays into this
+  function spaceOut(a, delay, feedback, wetLevel) {
+    const out = a.createGain(), echo = a.createDelay(1), fb = a.createGain(), wet = a.createGain();
+    out.gain.value = 0.5;
+    echo.delayTime.value = delay; fb.gain.value = feedback; wet.gain.value = wetLevel;
+    out.connect(a.destination);
+    out.connect(echo); echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(a.destination);
+    return out;
+  }
+
+  function noise(a, dur) {
+    const b = a.createBuffer(1, Math.ceil(a.sampleRate * dur), a.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const s = a.createBufferSource();
+    s.buffer = b;
+    return s;
+  }
+
+  const rand = (lo, hi) => lo + Math.random() * (hi - lo);
+
+  // each entry: [echo delay, echo feedback, echo level, play(audioCtx, out, startTime)]
+  const SOUNDS = [
+    // rising sweep, then a shimmering chord
+    [0.28, 0.38, 0.45, (a, out, t0) => {
+      voice(a, out, 180, t0, 0.6, 0.12, 'sine', 0.1).frequency.exponentialRampToValueAtTime(1400, t0 + 0.55);
+      [659.3, 987.8, 1318.5, 1975.5].forEach((f, k) => {
+        for (const det of [-6, 6])
+          voice(a, out, f, t0 + 0.5 + k * 0.09, 1.6, 0.07, k % 2 ? 'triangle' : 'sine', 0.02).detune.value = det;
+      });
+    }],
+    // orbit bloom: metallic FM bells that drift apart
+    [0.31, 0.38, 0.45, (a, out, t0) => {
+      [523.25, 783.99, 1174.66].forEach((f, i) => {
+        const t = t0 + i * 0.16, c = voice(a, out, f, t, 1.8, 0.12 / Math.pow(i + 1, 0.4), 'sine', 0.008);
+        const m = a.createOscillator(), mg = a.createGain();
+        m.frequency.value = f * 1.41;
+        mg.gain.setValueAtTime(f * 1.41 * 2.2, t);
+        mg.gain.exponentialRampToValueAtTime(1, t + 1.2);
+        m.connect(mg).connect(c.frequency);
+        m.start(t); m.stop(t + 1.9);
+      });
+    }],
+    // theremin glide: a wobbly tone that sighs down and curls back up
+    [0.22, 0.3, 0.45, (a, out, t0) => {
+      const curve = new Float32Array(64);
+      for (let i = 0; i < 64; i++) curve[i] = 880 * Math.pow(2, -0.9 * Math.pow(Math.sin(Math.PI * i / 63), 1.5));
+      [[1, 0.1], [2, 0.025]].forEach(([mul, peak]) => {
+        const o = voice(a, out, 880 * mul, t0, 1.9, peak, 'sine', 0.5);
+        o.frequency.setValueCurveAtTime(curve.map(f => f * mul), t0 + 0.001, 1.85);
+        const lfo = a.createOscillator(), lg = a.createGain();
+        lfo.frequency.value = 5.5; lg.gain.value = 10 * mul;
+        lfo.connect(lg).connect(o.frequency);
+        lfo.start(t0); lfo.stop(t0 + 1.95);
+      });
+    }],
+    // alien chatter: ring-modulated chirps, like a polite robot
+    [0.19, 0.42, 0.45, (a, out, t0) => {
+      [1046, 1568, 1318, 2093, 1760, 1174, 2349].forEach((f, k) => {
+        const t = t0 + k * 0.17, d = 0.09 + 0.04 * (k % 3), ring = a.createGain();
+        ring.gain.value = 0;
+        ring.connect(out);
+        voice(a, ring, f, t, d, 0.18, 'sine', d / 2).frequency.linearRampToValueAtTime(f * (k % 2 ? 1.25 : 0.8), t + d);
+        const m = a.createOscillator();
+        m.frequency.value = f * 0.37;
+        m.connect(ring.gain);
+        m.start(t); m.stop(t + d + 0.05);
+      });
+    }],
+    // warp shimmer: an airy swell that lands on a glassy ping
+    [0.35, 0.33, 0.45, (a, out, t0) => {
+      const n = noise(a, 1.1), hp = a.createBiquadFilter(), ng = a.createGain();
+      hp.type = 'highpass'; hp.frequency.value = 4000;
+      ng.gain.setValueAtTime(0.0001, t0);
+      ng.gain.exponentialRampToValueAtTime(0.05, t0 + 1);
+      ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.08);
+      n.connect(hp).connect(ng).connect(out);
+      n.start(t0); n.stop(t0 + 1.1);
+      [[1, 0.05], [1.5, 0.03], [2.01, 0.025]].forEach(([h, p]) =>
+        voice(a, out, 300 * h, t0, 1.08, p, 'sine', 1).frequency.exponentialRampToValueAtTime(2400 * h, t0 + 1));
+      [[1975.5, 0.12], [2959.9, 0.06], [4186, 0.035], [1318.5, 0.07]].forEach(([f, p]) =>
+        voice(a, out, f, t0 + 1, 1.4, p, 'sine', 0.003));
+    }],
+    // sonar drip: two water-drop blips, each answered by a sonar ping
+    [0.42, 0.45, 0.5, (a, out, t0) => {
+      [[0, 1], [0.6, 1.5]].forEach(([dt, mul]) => {
+        const t = t0 + dt;
+        voice(a, out, 500 * mul, t, 0.12, 0.13, 'sine', 0.01).frequency.exponentialRampToValueAtTime(1500 * mul, t + 0.07);
+        voice(a, out, 740 * mul, t + 0.08, 1.4, 0.1, 'sine', 0.005).frequency.exponentialRampToValueAtTime(720 * mul, t + 1.4);
+      });
+    }],
+    // quantum arpeggio: a quick sparkly run upwards
+    [0.15, 0.5, 0.45, (a, out, t0) => {
+      const notes = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.5];
+      notes.forEach((f, k) => {
+        const last = k === notes.length - 1;
+        for (const det of [-8, 8])
+          voice(a, out, f, t0 + k * 0.06, last ? 1.4 : 0.5, last ? 0.07 : 0.05, 'triangle', 0.005).detune.value = det;
+      });
+    }],
+    // space whale: a slow vowel-like moan through a sweeping filter
+    [0.33, 0.4, 0.45, (a, out, t0) => {
+      const lp = a.createBiquadFilter();
+      lp.type = 'lowpass'; lp.Q.value = 8;
+      lp.frequency.setValueAtTime(300, t0);
+      lp.frequency.exponentialRampToValueAtTime(1800, t0 + 0.9);
+      lp.frequency.exponentialRampToValueAtTime(500, t0 + 2);
+      lp.connect(out);
+      for (const det of [-10, 10]) {
+        const o = voice(a, lp, 196, t0, 2, 0.05, 'sawtooth', 0.4);
+        o.detune.value = det;
+        o.frequency.exponentialRampToValueAtTime(294, t0 + 1.2);
+        o.frequency.exponentialRampToValueAtTime(262, t0 + 2);
+      }
+    }],
+    // crystal rain: random glassy plinks
+    [0.23, 0.45, 0.45, (a, out, t0) => {
+      const notes = [1567.98, 1760, 2093, 2349.3, 2637, 3136];
+      for (let k = 0; k < 9; k++) {
+        const f = notes[Math.floor(Math.random() * notes.length)], t = t0 + rand(0, 1.2), p = rand(0.04, 0.07);
+        voice(a, out, f, t, 0.6, p, 'sine', 0.003);
+        voice(a, out, f * 2.76, t, 0.25, p / 4, 'sine', 0.003);
+      }
+    }],
+    // tractor beam: a rising tone that pulses faster and faster
+    [0.27, 0.35, 0.45, (a, out, t0) => {
+      const trem = a.createGain(), lfo = a.createOscillator(), lg = a.createGain();
+      trem.gain.value = 0.5; lg.gain.value = 0.5;
+      lfo.frequency.setValueAtTime(6, t0);
+      lfo.frequency.exponentialRampToValueAtTime(24, t0 + 1.5);
+      lfo.connect(lg).connect(trem.gain);
+      trem.connect(out);
+      lfo.start(t0); lfo.stop(t0 + 1.7);
+      [[330, 0.12], [495, 0.04]].forEach(([f, p]) =>
+        voice(a, trem, f, t0, 1.6, p, 'sine', 0.3).frequency.exponentialRampToValueAtTime(f * 2, t0 + 1.4));
+    }],
+    // bubble portal: a few bubbles, then a soft chime
+    [0.2, 0.35, 0.45, (a, out, t0) => {
+      let t = t0;
+      for (let k = 0; k < 6; k++) {
+        const f = rand(300, 700);
+        voice(a, out, f, t, 0.1, 0.1, 'sine', 0.005).frequency.exponentialRampToValueAtTime(f * 3, t + 0.08);
+        t += rand(0.1, 0.2);
+      }
+      voice(a, out, 200, t, 0.18, 0.14, 'sine', 0.01).frequency.exponentialRampToValueAtTime(700, t + 0.15);
+      [1046.5, 1568].forEach((f, k) => voice(a, out, f, t + 0.15 + k * 0.08, 1.3, 0.06, 'sine', 0.01));
+    }],
+  ];
+
+  // play a random end sound, never the same one twice in a row
+  let lastSound = -1;
   function beep() {
     if (!audio) return;
     audio.resume();
-    const a = audio, t0 = a.currentTime + 0.05, out = a.createGain();
-    out.gain.value = 0.5;
-    const echo = a.createDelay(1), fb = a.createGain(), wet = a.createGain();
-    echo.delayTime.value = 0.28; fb.gain.value = 0.38; wet.gain.value = 0.45;
-    out.connect(a.destination);
-    out.connect(echo); echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(a.destination);
-
-    const sw = a.createOscillator(), sg = a.createGain();
-    sw.type = 'sine';
-    sw.frequency.setValueAtTime(180, t0);
-    sw.frequency.exponentialRampToValueAtTime(1400, t0 + 0.55);
-    sg.gain.setValueAtTime(0.0001, t0);
-    sg.gain.exponentialRampToValueAtTime(0.12, t0 + 0.1);
-    sg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.6);
-    sw.connect(sg).connect(out);
-    sw.start(t0); sw.stop(t0 + 0.65);
-
-    [659.3, 987.8, 1318.5, 1975.5].forEach((f, k) => {
-      const t = t0 + 0.5 + k * 0.09;
-      for (const det of [-6, 6]) {
-        const o = a.createOscillator(), g = a.createGain();
-        o.type = k % 2 ? 'triangle' : 'sine';
-        o.frequency.value = f;
-        o.detune.value = det;
-        g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(0.07, t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
-        o.connect(g).connect(out);
-        o.start(t); o.stop(t + 1.7);
-      }
-    });
+    let i;
+    do i = Math.floor(Math.random() * SOUNDS.length); while (i === lastSound);
+    lastSound = i;
+    const [delay, feedback, wetLevel, play] = SOUNDS[i];
+    play(audio, spaceOut(audio, delay, feedback, wetLevel), audio.currentTime + 0.05);
   }
 
   // ================= native app (Capacitor): alarm even when the phone is locked =================
