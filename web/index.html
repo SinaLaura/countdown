@@ -70,6 +70,9 @@
   #sub { margin-top: 4px; font-size: 15px; min-height: 1.3em; }
   #stage { flex: 1; min-height: 0; position: relative; margin: 20px 0 8px; }
   #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .foot { display: flex; flex-wrap: wrap; justify-content: center; }
+  #stage { transition: opacity .4s; }
+  .paused #stage { opacity: .3; }
   .exit { align-self: center; padding: 12px 28px; font-size: 15px; letter-spacing: .06em; }
 
   /* done */
@@ -110,7 +113,10 @@
     <h1 id="count">37 left</h1>
     <p id="sub" class="muted"></p>
     <div id="stage"><canvas id="canvas"></canvas></div>
-    <button class="exit muted" id="exit" type="button">Exit</button>
+    <div class="foot">
+      <button class="exit muted" id="pause" type="button">I'm going to the kitchen</button>
+      <button class="exit muted" id="exit" type="button">Exit</button>
+    </div>
   </section>
 
   <section id="done" class="screen" hidden>
@@ -180,6 +186,8 @@
     { name: 'abacus', goneScale: 1, goneDim: 0.5, goneMs: 700, lay: abacus, pos: beadPos, item: bead, before: abacusFrame },
     // twinkling constellation, stars go out one by one
     { name: 'stars', live: true, hit: 0.8, goneScale: 0.25, lay: stars, pos: twinkle, item: star, before: starLines },
+    // a cute spider, its legs drop off one by one
+    { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody },
   ];
 
   const TAU = Math.PI * 2;
@@ -371,6 +379,25 @@
     return { pts, d: Math.min(30, Math.min(cw, ch) * 0.55) };
   }
 
+  // a spider hanging on its thread; legs alternate left/right, the lower ones fall off first
+  function spider(n, w, h) {
+    const cx = w / 2, cy = h * 0.46, R = Math.min(w * 0.35, h * 0.34), rb = R * 0.32, rnd = seeded(n * 13 + 1), pts = [];
+    const m = Math.ceil(n / 2), lw = Math.max(1.5, Math.min(R * 0.05, rb * 2.4 / m * 0.35));
+    for (let i = 0; i < n; i++) {
+      const s = i % 2 ? -1 : 1, j = Math.floor(i / 2);
+      const th = m === 1 ? 0 : lerp(-1.1, 1.1, j / (m - 1)), L = R * (m > 8 && j % 2 ? 0.72 : 1);
+      const dx = s * Math.cos(th), dy = Math.sin(th);
+      const B = { x: cx + dx * rb * 0.85, y: cy + dy * rb * 0.85 };
+      const K = { x: cx + dx * (rb + L * 0.45), y: cy + dy * (rb + L * 0.45) - L * 0.25 };   // knee raised
+      const F = { x: cx + dx * (rb + L), y: cy + dy * (rb + L) + L * 0.15 };                 // foot lower
+      pts.push({
+        x: K.x, y: K.y, bx: B.x - K.x, by: B.y - K.y, fx: F.x - K.x, fy: F.y - K.y, hr: L * 0.4,
+        lx: cx + (rnd() - 0.5) * w * 0.6, ly: h - 14 - rnd() * 6, spin: (rnd() - 0.5) * 6,
+      });
+    }
+    return { pts, d: lw, spider: { cx, cy, R, rb } };
+  }
+
   function bag(n) {
     let q = [];
     return cur => {
@@ -451,13 +478,18 @@
 
   // ================= countdown =================
 
-  function begin(e, t) {
+  const subText = () => label ? label + ' · ' + fmt(end) : fmt(end);
+
+  function begin(e, t, paused) {
     end = e;
+    pausedAt = 0;
+    $('run').classList.remove('paused');
+    $('pause').textContent = "I'm going to the kitchen";
     total = t || Math.max(1, Math.ceil((end - Date.now()) / 60000));
     ls.set('countdown', { end, total, label });
     shownMin = -1;
     goneAt.clear(); pulses.clear(); tints.clear();
-    $('sub').textContent = label ? label + ' · ' + fmt(end) : fmt(end);
+    $('sub').textContent = subText();
     show('run');
     born = performance.now();
     relayout();
@@ -466,9 +498,39 @@
     tick();
     keepAwake();
     scheduleAlarm();
+    if (paused) pause();
   }
 
+  // pause: the remaining time is kept and the end moves back by however long the break was
+  let pausedAt = 0;
+  function pause() {
+    pausedAt = Date.now();
+    clearInterval(timer);
+    letSleep();
+    cancelAlarm();
+    ls.set('countdown', { end, total, label, pausedAt });
+    $('run').classList.add('paused');
+    $('pause').textContent = "I'm back";
+    $('sub').textContent = (label ? label + ' · ' : '') + 'paused';
+    document.title = 'Paused · ' + (label || TITLE);
+  }
+  function resume() {
+    end += Date.now() - pausedAt;
+    pausedAt = 0;
+    ls.set('countdown', { end, total, label });
+    $('run').classList.remove('paused');
+    $('pause').textContent = "I'm going to the kitchen";
+    $('sub').textContent = subText();
+    document.title = shownMin + ' left · ' + (label || TITLE);
+    timer = setInterval(tick, 1000);
+    tick();
+    keepAwake();
+    scheduleAlarm();
+  }
+  $('pause').onclick = () => pausedAt ? resume() : pause();
+
   function tick() {
+    if (pausedAt) return;
     const left = end - Date.now();
     if (left <= 1000) return finish();
     const min = Math.min(total, Math.ceil(left / 60000));
@@ -486,6 +548,8 @@
     cancelAlarm();
     ls.del('countdown');
     end = 0;
+    pausedAt = 0;
+    $('run').classList.remove('paused');
     document.title = TITLE;
     show('setup');
   }
@@ -836,6 +900,45 @@
     c.globalAlpha = X.all;
   }
 
+  // ---- spider ----
+  const bob = X => X.still ? 0 : Math.sin(X.now / 700) * X.geo.spider.R * 0.03;
+  function legPos(X, i, g, p) {
+    const b = bob(X);
+    if (g <= 0) return { x: p.x, y: p.y + b, r: 0 };
+    return { x: lerp(p.x, p.lx, g), y: lerp(p.y + b, p.ly, g * g), r: p.spin * g };
+  }
+  function leg(X, i, x, y, k, q, p, col) {
+    const c = X.c;
+    c.save(); c.translate(x, y); c.rotate(q.r); c.scale(k, k);
+    c.strokeStyle = col; c.lineWidth = X.d;
+    c.beginPath(); c.moveTo(p.bx, p.by); c.lineTo(0, 0); c.lineTo(p.fx, p.fy); c.stroke();
+    c.beginPath(); c.arc(p.fx, p.fy, X.d * 0.9, 0, TAU); c.fill();
+    c.restore();
+  }
+  function thread(X) {
+    const { c, P } = X, S = X.geo.spider;
+    c.strokeStyle = P.dim; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(S.cx, 0); c.lineTo(S.cx, S.cy + bob(X)); c.stroke();
+  }
+  function spiderBody(X) {
+    const { c, P } = X, S = X.geo.spider, r = S.rb * easeBack(X.all), x = S.cx, y = S.cy + bob(X);
+    if (r <= 0) return;
+    c.fillStyle = mix(P.fg, P.bg, 0.12);
+    c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
+    // cute face: big eyes that blink now and then, rosy cheeks, a little smile
+    const open = X.still || X.now % 4200 > 160 ? 1 : 0.12;
+    c.fillStyle = P.bg;
+    for (const s of [-1, 1]) { c.beginPath(); c.ellipse(x + s * r * 0.36, y - r * 0.08, r * 0.2, r * 0.2 * open, 0, 0, TAU); c.fill(); }
+    if (open === 1) {
+      c.fillStyle = mix(P.fg, '#ffffff', 0.7);
+      for (const s of [-1, 1]) { c.beginPath(); c.arc(x + s * r * 0.36 + r * 0.06, y - r * 0.15, r * 0.07, 0, TAU); c.fill(); }
+    }
+    c.fillStyle = mix(P.fg, '#ff5d8f', 0.45);
+    for (const s of [-1, 1]) { c.beginPath(); c.ellipse(x + s * r * 0.62, y + r * 0.22, r * 0.13, r * 0.08, 0, 0, TAU); c.fill(); }
+    c.strokeStyle = P.bg; c.lineWidth = r * 0.06;
+    c.beginPath(); c.arc(x, y + r * 0.16, r * 0.16, Math.PI * 0.15, Math.PI * 0.85); c.stroke();
+  }
+
   // returns true while something is still animating
   function draw(now) {
     const c = ctx, M = MODES[look.m], P = PALETTES[look.p], pts = geo.pts, d = geo.d, n = pts.length;
@@ -1110,7 +1213,7 @@
   function letSleep() { try { if (wake) wake.release(); } catch (e) {} wake = null; }
 
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !$('run').hidden) { tick(); keepAwake(); }
+    if (document.visibilityState === 'visible' && !$('run').hidden && !pausedAt) { tick(); keepAwake(); }
   });
 
   // ================= start: ?m=37 or ?bis=18:30 (optional &t=Lunch, &look=3) starts right away =================
@@ -1125,6 +1228,8 @@
     label = (q.get('t') || '').trim().slice(0, 40);
     if (q.has('bis')) begin(endFromTime(q.get('bis')));
     else { setMinutes(+q.get('m')); begin(Date.now() + minutes * 60000); }
+  } else if (saved && saved.pausedAt) {
+    begin(Date.now() + (saved.end - saved.pausedAt), saved.total, true);
   } else if (saved && saved.end > Date.now()) {
     begin(saved.end, saved.total);
   } else if (saved && Date.now() - saved.end < 15 * 60000) {
