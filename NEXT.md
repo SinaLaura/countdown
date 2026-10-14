@@ -19,10 +19,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] Remove some of the boring themes (don't delete, we will re-use them maybe later, but take them offline). (session A, started 12:00)
 
 ## Done
 
+- [x] Remove some of the boring themes (3852e51) → http://localhost:8765/?m=10 (tap the background a few times: only the 16 advanced themes + snake appear)
 - [x] In the browser when I don't click in the centered void the theme doesn't change. Change that. (priority task) (20967f8) → http://localhost:8765/?m=10 (in a wide window, tap the empty space left or right of the column)
 - [x] Fullscreen should start only after someone presses Start. (6c49cc7) → http://localhost:8765/ (first tap does nothing, Start goes fullscreen)
 - [x] I like the new physics of the hourglass, but make the bubbles circles. (c745ece) → lab/hourglass-matter.html (open the file directly)
