@@ -1593,25 +1593,25 @@
     const p = G.pts[i];
     p.boost = G.d * 7;
     p.turn += (Math.random() - 0.5) * 2;
-    // the puff starts at the exhaust and stays where it was blown out while the car zooms off
-    const L = G.d * 0.55;
-    (G.puffs = G.puffs || []).push({ x: p.x - Math.cos(p.a) * L, y: p.y - Math.sin(p.a) * L, a: p.a + Math.PI, t0: performance.now(), s: Math.random() < 0.5 ? 1 : -1 });
+    // the puff comes out of the exhaust and stays right behind the car while it zooms off
+    (G.puffs = G.puffs || []).push({ i, t0: performance.now(), s: Math.random() < 0.5 ? 1 : -1 });
   }
-  // little exhaust clouds: three puffs one after another, drifting back, growing and fading
+  // little exhaust clouds: three puffs one after another, close behind the car, growing and fading
   function carPuffs(X) {
     const G = X.geo, c = X.c, d = X.d;
     if (!G.puffs || !G.puffs.length) return;
     if (X.still) { G.puffs.length = 0; return; }
-    G.puffs = G.puffs.filter(f => X.now - f.t0 < 1400);
+    G.puffs = G.puffs.filter(f => X.now - f.t0 < 1000 && X.pts[f.i] && !X.pts[f.i].out);
     c.fillStyle = mix(X.P.dim, X.P.text, 0.35);
     for (const f of G.puffs) {
+      const p = X.pts[f.i], a = p.a + Math.PI, ex = p.x + Math.cos(a) * d * 0.5, ey = p.y + Math.sin(a) * d * 0.5;
       for (let k = 0; k < 3; k++) {
-        const t = clamp((X.now - f.t0 - k * 150) / 1000);
+        const t = clamp((X.now - f.t0 - k * 120) / 700);
         if (t <= 0 || t >= 1) continue;
-        const e = easeOut(t), side = f.s * (k - 1) * 0.4, dist = d * (0.05 + 0.4 * e) * (1 + 0.25 * k);
-        const x = f.x + Math.cos(f.a + side) * dist, y = f.y + Math.sin(f.a + side) * dist;
+        const e = easeOut(t), side = f.s * (k - 1) * 0.5, dist = d * (0.04 + 0.22 * e);
+        const x = ex + Math.cos(a + side) * dist, y = ey + Math.sin(a + side) * dist;
         c.globalAlpha = 0.85 * (1 - t * t);
-        c.beginPath(); c.arc(x, y, d * (0.08 + 0.16 * e) * (1 - 0.12 * k), 0, TAU); c.fill();
+        c.beginPath(); c.arc(x, y, d * (0.07 + 0.12 * e) * (1 - 0.12 * k), 0, TAU); c.fill();
       }
     }
     c.globalAlpha = 1;
