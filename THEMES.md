@@ -20,7 +20,7 @@ Regeln für alle Themes stehen in [CLAUDE.md](CLAUDE.md). Testen: `?m=10&look=<i
 | 11 | orbit | Mond driftet ins All |
 | 12 | jar | Glas ist am Anfang voll, der Füllstand zeigt die Restzeit; pro Minute lädt sich der oberste Ball auf und springt wie beim Antippen, nur hoch genug, um rauszukommen, und verschwindet (es bleibt nichts liegen, so gewünscht); Antippen = Ball hüpft, kommt aber nie raus |
 | 13 | caterpillar | Raupe wird kürzer, am Ende Schmetterling |
-| 14 | hourglass | Sandkorn rutscht zum Hals, fällt durch und rollt auf den Haufen (oben entsteht eine Mulde, unten ein Hügel; Körner unregelmäßig); Pause = ein kurzer Schieber schließt den Hals, kein Ausblenden |
+| 14 | hourglass | Sandkorn rutscht zum Hals, fällt durch und rollt auf den Haufen (oben entsteht eine Mulde, unten ein Hügel; Körner unregelmäßig); Pause = ein kurzer Schieber (gleiche Farbe und Strichstärke wie das Glas) schließt den Hals, kein Ausblenden |
 | 15 | fuse | Lunte brennt ab, am Ende Knall |
 | 16 | chocolate | Stück bricht ab |
 | 17 | abacus | Perle rutscht nach rechts |
