@@ -9,10 +9,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 - [ ] After I picked the app icon: export it to icon-192, icon-512 and apple-touch-icon in docs/ and bump the cache name in sw.js. (waiting for your pick: lab/icons.html)
 - [ ] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available). (not started: needs your call on the cycle, e.g. 25 min work + 5 min break, long break after 4?)
 - [ ] What is the classical pomodoro technique? Choose that (for the pomodoro task above).
-- [ ] The snake's tongue looks strange, because her eyes don't move in the same direction. Fix it.
-- [ ] In the browser the snake's tongue is also cut off, because still just the center is used (for every theme). So your latest change to use the full screen seems not to work.
 
 ## In progress
+- [ ] The snake's tongue looks strange, because her eyes don't move in the same direction. Fix it. (session opus, started 15:55)
+- [ ] In the browser the snake's tongue is also cut off, because still just the center is used (for every theme). So your latest change to use the full screen seems not to work. (session opus, started 15:55)
 
 
 ## Done
