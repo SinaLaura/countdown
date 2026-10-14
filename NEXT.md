@@ -6,10 +6,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] Hourglass: let's try to use threejs.org to make the physics for the hourglass better. But just as a test (separate test page, the app itself stays free of external libraries). Open it for me then
 
 ## In progress
 
+- [ ] Hourglass: let's try to use threejs.org to make the physics for the hourglass better. But just as a test (separate test page, the app itself stays free of external libraries). Open it for me then (user chose 2D with Matter.js instead; session 406605b7, started 13:06)
 
 ## Done
 
