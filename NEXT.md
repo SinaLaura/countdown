@@ -6,10 +6,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] Make my app fullscreen by default
 
 ## In progress
 
+- [ ] Make my app fullscreen by default (session 406605b7, started 13:14)
 
 ## Done
 
