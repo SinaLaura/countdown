@@ -17,14 +17,14 @@ Regeln für alle Themes stehen in [CLAUDE.md](CLAUDE.md). Testen: `?m=10&look=<i
 | 8 | diamonds | Raute schrumpft |
 | 9 | tiles | Dreieck schrumpft |
 | 10 | flower | Blütenblatt fällt ab |
-| 11 | orbit | Mond driftet ins All |
+| 11 | orbit | Mond driftet ins All; Pause = das ganze System fällt in den Planeten zusammen, danach geht es wieder auf |
 | 12 | jar | Glas ist am Anfang voll, der Füllstand zeigt die Restzeit; pro Minute pulsiert der oberste Ball genau wie beim Antippen und springt in der Kugel-Physik hoch, nur hoch genug, um über den Rand zu kommen, fliegt seitlich raus und verschwindet (es bleibt nichts liegen, so gewünscht); Antippen = Ball hüpft, kommt aber nie raus |
 | 13 | caterpillar | Raupe wird kürzer, am Ende Schmetterling; Antippen = sie lächelt kurz |
 | 14 | hourglass | Sandkorn rutscht zum Hals, fällt durch und rollt auf den Haufen (oben entsteht eine Mulde, unten ein Hügel; Körner unregelmäßig); Pause = ein kurzer Schieber (gleiche Farbe und Strichstärke wie das Glas) schließt den Hals, kein Ausblenden |
 | 15 | fuse | Lunte brennt ab, am Ende Knall |
 | 16 | chocolate | Stück bricht ab |
 | 17 | abacus | Perle rutscht nach rechts |
-| 18 | stars | Stern im Sternbild erlischt |
+| 18 | stars | Stern im Sternbild erlischt; Pause = das Sternbild zieht sich in der Mitte zusammen, danach breitet es sich wieder aus |
 | 19 | hedgehog | Stachel fällt ab, er wird rot; Körper antippen = hüpfen/schütteln; Pause = schläft (Augen zu, atmet langsam, kleine „z“ steigen auf, Fläche bleibt hell) |
 | 20 | cinema | Gast verlässt den Saal, die Zeit läuft auf der Leinwand |
 | 21 | spider | Bein fällt ab; Kopf antippen = federt am Faden, kneift glücklich die Augen zu; Pause = zieht die Beine ein |

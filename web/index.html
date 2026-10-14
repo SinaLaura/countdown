@@ -465,7 +465,7 @@
       for (const p of left) { const dd = (p.x - cur.x) ** 2 + (p.y - cur.y) ** 2; if (dd < bd) { bd = dd; best = p; } }
       cur = best;
     }
-    return { pts, d: Math.min(30, Math.min(cw, ch) * 0.55) };
+    return { pts, d: Math.min(30, Math.min(cw, ch) * 0.55), mid: { x: w / 2, y: h / 2 } };
   }
 
   // a spider hanging on its thread; legs alternate left/right, the lower ones fall off first
@@ -921,14 +921,17 @@
   }
 
   // ---- orbit ----
+  // paused: the whole system collapses into the planet (k 0..1), and opens up again on resume
+  const collapse = X => { const e = 1 - X.calm; return e * e * (3 - 2 * e); };
+  const shrinkR = (X, r) => lerp(r, X.geo.orbit.pr * 0.45, collapse(X));
   function moonPos(X, i, g, p) {
-    const O = X.geo.orbit, t = X.still ? 0 : X.t, a = p.a0 + p.w * t, r = p.r + g * g * O.R * 1.3;
-    return { x: O.cx + Math.cos(a) * r, y: O.cy + Math.sin(a) * r, a: g > 0 ? 1 - g : undefined };
+    const O = X.geo.orbit, t = X.still ? 0 : X.t, a = p.a0 + p.w * t, r = shrinkR(X, p.r) + g * g * O.R * 1.3;
+    return { x: O.cx + Math.cos(a) * r, y: O.cy + Math.sin(a) * r, s: lerp(1, 0.35, collapse(X)), a: g > 0 ? 1 - g : undefined };
   }
   function planet(X) {
     const { c, P } = X, O = X.geo.orbit;
     c.strokeStyle = P.dim; c.lineWidth = 1;
-    O.radii.forEach(r => { c.beginPath(); c.arc(O.cx, O.cy, r, 0, TAU); c.stroke(); });
+    O.radii.forEach(r => { c.beginPath(); c.arc(O.cx, O.cy, shrinkR(X, r), 0, TAU); c.stroke(); });
     c.fillStyle = mix(P.text, P.bg, 0.15);
     c.beginPath(); c.arc(O.cx, O.cy, O.pr, 0, TAU); c.fill();
     c.lineWidth = O.pr * 0.14;
@@ -1286,8 +1289,11 @@
   }
 
   // ---- constellation ----
+  // paused: the constellation draws together in the middle, and spreads out again on resume
   function twinkle(X, i, g, p) {
-    return X.still || g >= 1 ? null : { x: p.x, y: p.y, s: 1 + 0.18 * Math.sin(X.t * 1000 / 380 + p.ph) };
+    const k = collapse(X), m = X.geo.mid, f = 1 - 0.85 * k;
+    const s = (X.still || g >= 1 ? 1 : 1 + 0.18 * Math.sin(X.t * 1000 / 380 + p.ph)) * lerp(1, 0.6, k);
+    return { x: m.x + (p.x - m.x) * f, y: m.y + (p.y - m.y) * f, s };
   }
   function star(X, i, x, y, k) {
     const c = X.c, r = X.d * k / 2, ri = r * 0.3;
@@ -1301,7 +1307,7 @@
       const lit = i + 1 < X.min;
       c.strokeStyle = lit ? P.fg : P.dim; c.lineWidth = lit ? 1.2 : 1;
       c.globalAlpha = X.all * (lit ? 0.35 : 0.7);
-      c.beginPath(); c.moveTo(pts[i].x, pts[i].y); c.lineTo(pts[i + 1].x, pts[i + 1].y); c.stroke();
+      c.beginPath(); c.moveTo(pts[i].cx, pts[i].cy); c.lineTo(pts[i + 1].cx, pts[i + 1].cy); c.stroke();
     }
     c.globalAlpha = X.all;
   }
