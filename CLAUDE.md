@@ -27,7 +27,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Vergangene Items bleiben sichtbar (blass, klein, am Boden …), wenn es zum Theme passt.
 - Themes mit Gesicht sind niedlich, im Stil von Raupe, Spinne und Igel.
 - Ein Theme darf die Überschrift ersetzen (`noHead`) und die Zeit selbst zeigen, wie das Kino auf der Leinwand.
-- Farben kommen immer aus der aktuellen Palette (`P.fg`, `P.bg`, `P.dim`, `P.text`), nie fest im Theme.
+- Farben kommen immer aus der aktuellen Palette (`P.fg`, `P.bg`, `P.dim`, `P.text`), nie fest im Theme. Ausnahme auf Wunsch des Users: `thermometer` nutzt echte Temperaturfarben (rot → eisblau), nur Hintergrund und Glas folgen der Palette.
 
 ## Pause (Standard, wenn nichts anderes gewünscht)
 - Der Countdown friert ein, und das Ende verschiebt sich um die Pausendauer.

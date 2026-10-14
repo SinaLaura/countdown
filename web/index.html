@@ -202,6 +202,9 @@
     // ducklings swim in line behind their mother, the last one loses track each minute; tap the mother and she looks back
     { name: 'ducks', live: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: ducks, step: duckStep, pos: duckPos, item: duckling,
       tap: () => peep(), after: motherDuck, bodyTap: duckTap },
+    // a thermometer that gets colder each minute; segments freeze onto the glass, the temperature replaces the headline
+    { name: 'thermometer', live: true, noHead: true, noDim: true, goneScale: 1, goneDim: 0, goneMs: 1800, goneLinear: true, endArt: 'shatter',
+      lay: thermometer, pos: freeze, item: segment, before: thermoGlass, after: beanie, bodyTap: thermoTap },
   ];
 
   const TAU = Math.PI * 2;
@@ -522,6 +525,23 @@
     const pts = perm.map(k => seats[k]);
     const order = pts.map((_, i) => i).sort((a, b) => pts[a].y - pts[b].y);   // far rows first
     return { pts, d: s0, order, cinema: { sx, sy, sw, sh } };
+  }
+
+  // a thermometer: one segment of the column per minute, the top one cools off first and freezes onto the glass
+  function thermometer(n, w, h) {
+    const tw = Math.min(w * 0.14, 54), br = tw * 0.95, cx = w * 0.36;
+    const top = Math.max(16, h * 0.05) + tw * 1.5, by = h - br - 10, bottom = by - br * 0.7;   // room for the hat
+    const sh = (bottom - top) / n, sw = tw * 0.6, rnd = seeded(n * 29 + 3), pts = [];
+    const cs = Math.max(5, Math.min(sh * 1.4, tw * 0.42));   // size of an ice crystal
+    for (let i = 0; i < n; i++) {
+      const y = bottom - (i + 0.5) * sh, side = i % 2 ? -1 : 1;
+      pts.push({
+        x: cx, y, sh, sw, hr: Math.max(sh * 0.6, sw * 0.5), ring: Math.max(sh, sw) * 0.6,
+        // frost spot on the outside of the glass, near where the segment was
+        fx: cx + side * (tw / 2 + cs * 0.7 + rnd() * tw * 0.7), fy: y + (rnd() - 0.5) * sh, fr: rnd() * TAU,
+      });
+    }
+    return { pts, d: Math.max(sh, 4), therm: { cx, tw, br, by, top, bottom, cs } };
   }
 
   function bag(n) {
@@ -1546,6 +1566,117 @@
     for (const p of pts) { rr(c, p.x - p.s / 2, p.y + p.s * 0.12, p.s, p.s * 0.42, p.s * 0.12); c.fill(); }
   }
 
+  // ---- thermometer (real temperature colours instead of the palette, see CLAUDE.md) ----
+  const HEAT = ['#ff3b2f', '#ff7a2f', '#ffb13b', '#ffe08a', '#bfe9ff', '#6cc4ff', '#3d8bff'];
+  const ICE = '#d8f3ff';
+  function heat(f) {   // f = 1 hot ... 0 cold
+    const x = clamp(1 - f) * (HEAT.length - 1), k = Math.min(HEAT.length - 2, Math.floor(x));
+    return mix(HEAT[k], HEAT[k + 1], x - k);
+  }
+  function thermoFlare(X) {   // tap on the bulb: the column flares up for a moment
+    const T = X.geo.therm;
+    if (!T.flare || X.still) return 0;
+    const t = (X.now - T.flare) / 650;
+    if (t >= 1) { T.flare = 0; return 0; }
+    X.more = true;
+    return Math.sin(Math.PI * t);
+  }
+  function thermoTap(G, x, y) {
+    const T = G.therm;
+    if (Math.hypot(x - T.cx, y - T.by) > T.br * 1.15) return false;
+    T.flare = performance.now();
+    return true;
+  }
+  function freeze(X, i, g, p) {
+    const fl = thermoFlare(X) * (i < X.min ? 1 : 0);
+    if (g <= 0) return fl ? { x: p.x, y: p.y - fl * p.sh * 0.8 } : null;
+    if (g < 0.4) return { x: p.x, y: p.y, cool: g / 0.4 };   // the segment cools down in place
+    const t = (g - 0.4) / 0.6;                               // then drifts out onto the glass as ice
+    return { x: lerp(p.x, p.fx, t), y: lerp(p.y, p.fy, t), cool: 1, ice: t };
+  }
+  function crystal(c, x, y, r, rot) {
+    c.beginPath();
+    for (let k = 0; k < 6; k++) {   // six arms, each with a little V of branches
+      const a = rot + k * Math.PI / 3, bx = x + Math.cos(a) * r * 0.6, by = y + Math.sin(a) * r * 0.6;
+      c.moveTo(x, y); c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+      for (const s of [-0.7, 0.7]) { c.moveTo(bx, by); c.lineTo(bx + Math.cos(a + s) * r * 0.3, by + Math.sin(a + s) * r * 0.3); }
+    }
+    c.stroke();
+  }
+  function segment(X, i, x, y, k, q, p) {
+    const c = X.c, T = X.geo.therm, f = X.n ? X.min / X.n : 0, cool = q && q.cool || 0, ice = q && q.ice || 0;
+    if (ice > 0) {
+      const r = lerp(Math.min(p.sw, p.sh) / 2, T.cs / 2, ice) * k;
+      c.strokeStyle = mix(ICE, X.P.bg, 0.25 * ice); c.lineWidth = Math.max(1, r * 0.22); c.lineCap = 'round';
+      crystal(c, x, y, r, p.fr * ice);
+      return;
+    }
+    const hot = mix(heat(f), mix(heat(f), '#ffffff', 0.35), thermoFlare(X));
+    c.fillStyle = mix(hot, ICE, cool);
+    const sh = p.sh * (p.sh > 6 ? 0.86 : 1) * k * (1 - 0.4 * cool), sw = p.sw * k * (1 - 0.4 * cool);
+    rr(c, x - sw / 2, y - sh / 2, sw, sh, Math.min(sw, sh) * 0.3); c.fill();
+  }
+  function thermoGlass(X) {
+    const { c, P, n } = X, T = X.geo.therm, f = n ? X.min / n : 0, fl = thermoFlare(X);
+    // snow falls harder the colder it gets (stands still during a pause)
+    const flakes = Math.round(50 * clamp(1 - f) * X.all);
+    c.fillStyle = P.text;
+    for (let j = 0; j < flakes; j++) {
+      const sp = 0.03 + (j * 0.37 % 1) * 0.05, ph = j * 0.618 % 1;
+      const fy = ((X.t * sp + ph) % 1) * (H + 10) - 5, fx = (j * 0.7548 % 1) * W + Math.sin(X.t * 0.8 + j) * 8;
+      c.globalAlpha = 0.35 * X.all;
+      c.beginPath(); c.arc(fx, fy, 1.2 + (j % 3) * 0.6, 0, TAU); c.fill();
+    }
+    c.globalAlpha = X.all;
+    // bulb with the reservoir, then the tube and a little scale
+    c.fillStyle = mix(heat(f), '#ffffff', 0.35 * fl);
+    c.beginPath(); c.arc(T.cx, T.by, T.br * 0.78, 0, TAU); c.fill();
+    c.strokeStyle = P.dim; c.lineWidth = 3;
+    c.beginPath();
+    c.moveTo(T.cx - T.tw / 2, T.by - T.br * 0.75);
+    c.lineTo(T.cx - T.tw / 2, T.top);
+    c.arc(T.cx, T.top, T.tw / 2, Math.PI, 0);
+    c.lineTo(T.cx + T.tw / 2, T.by - T.br * 0.75);
+    c.arc(T.cx, T.by, T.br, -Math.PI / 2 + 0.55, -Math.PI / 2 - 0.55 + TAU);
+    c.closePath(); c.stroke();
+    c.lineWidth = 1.5;
+    const step = n > 60 ? 5 : 1;
+    c.beginPath();
+    for (let i = 0; i <= n; i += step) {
+      const y = T.bottom - i * (T.bottom - T.top) / n, long = i % (step * 5) === 0;
+      c.moveTo(T.cx + T.tw / 2 + 6, y); c.lineTo(T.cx + T.tw / 2 + (long ? 16 : 11), y);
+    }
+    c.stroke();
+    // the temperature replaces the headline
+    const nx = T.cx + T.tw / 2 + (W - T.cx - T.tw / 2) / 2, ny = Math.max(T.top + 30, T.bottom - (T.bottom - T.top) * f);
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = heat(f);
+    c.font = '700 ' + Math.round(Math.min(W * 0.18, 76)) + 'px ' + FONT;
+    c.fillText(X.min + '°', nx, ny);
+    c.fillStyle = P.text; c.globalAlpha = X.all * 0.55;
+    c.font = Math.round(Math.min(W * 0.04, 16)) + 'px ' + FONT;
+    c.fillText(pausedAt ? 'paused' : label ? label + ' · ' + fmt(end) : fmt(end), nx, ny + Math.min(W * 0.12, 50));
+    c.globalAlpha = 1;
+  }
+  function beanie(X) {   // pause: a woolly hat on top of the thermometer
+    const { c, P } = X, T = X.geo.therm, e = X.still ? (X.calm < 0.5 ? 1 : 0) : 1 - X.calm;
+    if (e <= 0.01) return;
+    const k = easeBack(e), w = T.tw * 1.6 * k, rib = mix(P.fg, P.bg, 0.3);
+    c.save(); c.translate(T.cx, T.top - T.tw * 0.1); c.rotate(-0.15);
+    c.fillStyle = P.fg;
+    c.beginPath(); c.ellipse(0, 0, w / 2, w * 0.62, 0, Math.PI, 0); c.fill();
+    c.fillStyle = rib;   // knitted brim
+    rr(c, -w * 0.56, -w * 0.06, w * 1.12, w * 0.26, w * 0.1); c.fill();
+    c.strokeStyle = P.fg; c.lineWidth = Math.max(1, w * 0.035);
+    c.beginPath();
+    for (let j = -4; j <= 4; j++) { c.moveTo(j * w * 0.12, -w * 0.02); c.lineTo(j * w * 0.12, w * 0.16); }
+    c.stroke();
+    c.fillStyle = mix(P.fg, '#ffffff', 0.45);   // bobble
+    c.beginPath(); c.arc(0, -w * 0.66, w * 0.15, 0, TAU); c.fill();
+    c.restore();
+  }
+
+
   // returns true while something is still animating
   function draw(now) {
     const c = ctx, M = MODES[look.m], P = PALETTES[look.p], pts = geo.pts, d = geo.d, n = pts.length;
@@ -1723,6 +1854,12 @@
         const a = Math.random() * TAU, v = 120 + Math.random() * 520;
         bits.push({ vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 1.5 + Math.random() * 3.5, col: cols[i % cols.length] });
       }
+    } else if (kind === 'shatter') {
+      const cols = [ICE, '#bfe9ff', '#6cc4ff', '#ffffff'];
+      for (let i = 0; i < 70; i++) {
+        const a = Math.random() * TAU, v = 80 + Math.random() * 380;
+        bits.push({ vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, r: 4 + Math.random() * 10, rot: Math.random() * TAU, spin: (Math.random() - 0.5) * 8, col: cols[i % cols.length] });
+      }
     }
     const loop = now => {
       if ($('done').hidden) return;
@@ -1750,6 +1887,22 @@
         x.moveTo(0, -s * 0.3); x.quadraticCurveTo(s * 0.1, -s * 0.55, s * 0.22, -s * 0.62);
         x.stroke();
         x.restore();
+      } else if (kind === 'shatter') {
+        // an icy flash, then shards that tumble down and melt away
+        const e = still ? 0.4 : (now - t0) / 1000, cx = r.width / 2, cy = r.height * 0.55;
+        if (e < 0.25) { x.globalAlpha = 1 - e / 0.25; x.fillStyle = ICE; x.beginPath(); x.arc(cx, cy, 20 + e * 500, 0, TAU); x.fill(); }
+        const k = (1 - Math.exp(-2.5 * e)) / 2.5;
+        x.globalAlpha = Math.max(0, 1 - e / 2.6);
+        for (const b of bits) {
+          x.save();
+          x.translate(cx + b.vx * k, cy + b.vy * k + 260 * e * e);
+          x.rotate(b.rot + b.spin * e);
+          x.fillStyle = b.col;
+          x.beginPath(); x.moveTo(0, -b.r); x.lineTo(b.r * 0.45, b.r * 0.7); x.lineTo(-b.r * 0.5, b.r * 0.4); x.closePath(); x.fill();
+          x.restore();
+        }
+        x.globalAlpha = 1;
+        if (e > 2.6) more = false;
       } else {
         // flash, shock ring, then sparks that slow down, sink and fade
         const e = still ? 0.35 : (now - t0) / 1000, cx = r.width / 2, cy = r.height * 0.6;
