@@ -179,7 +179,7 @@
     { name: 'spiral',   shape: 'circle',  guide: 'path', lay: spiral },
     { name: 'clock',    shape: 'circle',  guide: 'ring', lay: ring },
     { name: 'bars',     off: true, shape: 'bar',     lay: (n, w, h) => grid(n, w, h, 1.8, 3.6, { max: 65 }) },
-    { name: 'honey',    shape: 'hex',     lay: (n, w, h) => grid(n, w, h, 0.95, 0.82, { offset: true, max: 140 }) },
+    { name: 'honey',    shape: 'hex',     halo: X => ({ poly: starPoly(6, X.d * 0.6, X.d * 0.6) }), lay: (n, w, h) => grid(n, w, h, 0.95, 0.82, { offset: true, max: 140 }) },
     { name: 'rings',    shape: 'ring',    lay: (n, w, h) => grid(n, w, h, 1.5, 1.3, { offset: true }) },
     { name: 'diamonds', shape: 'diamond', hit: 0.4, lay: (n, w, h) => grid(n, w, h, 1.1, 0.55, { offset: true, max: 170 }) },
     { name: 'tiles',    off: true, shape: 'tri',     hit: 0.3, lay: (n, w, h) => grid(n, w, h, 0.58, 0.95, { max: 190 }) },
@@ -203,10 +203,14 @@
     // beads slide along the wires of an abacus
     { name: 'abacus', goneScale: 1, goneDim: 0.5, goneMs: 700, lay: abacus, pos: beadPos, item: bead, halo: X => ({ rx: X.d * 0.54, ry: X.geo.abacus.bh * 0.58 }), before: abacusFrame },
     // twinkling constellation, stars go out one by one
-    { name: 'stars', live: true, hit: 0.8, goneScale: 0.25, lay: stars, pos: twinkle, item: star, before: starLines },
+    { name: 'stars', live: true, hit: 0.8, goneScale: 0.25, halo: X => ({ poly: starPoly(4, X.d * 0.62, X.d * 0.22) }), lay: stars, pos: twinkle, item: star, before: starLines },
     // a cute spider, its legs drop off one by one
     // a shy hedgehog loses its spines and blushes more and more
-    { name: 'hedgehog', live: true, noDim: true, goneScale: 0.5, goneMs: 1500, lay: hedgehog, pos: hogPos, item: spine, halo: (X, p, q) => ({ rx: p.len * 0.58, ry: Math.max(p.wid * 0.75, 4), rot: p.ang + (q ? q.r || 0 : 0) }), after: hogBody, bodyTap: hogTap },
+    { name: 'hedgehog', live: true, noDim: true, goneScale: 0.5, goneMs: 1500, lay: hedgehog, pos: hogPos, item: spine, halo: (X, p, q) => {
+        // a spike around the spike: the body covers its base, so only the edge along the tip shows
+        const l = p.len * 0.5, w = Math.max(p.wid * 0.5, 2), pad = Math.max(3, w * 0.5);
+        return { poly: [[-l, -w - pad], [l + pad * 1.6, 0], [-l, w + pad]], rot: p.ang + (q ? q.r || 0 : 0) };
+      }, after: hogBody, bodyTap: hogTap },
     // people in a cinema, one leaves per minute; the countdown runs on the screen instead of the headline
     { name: 'cinema', live: true, noHead: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: cinema, pos: leave, item: person, before: cinemaScreen },
     { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody, bodyTap: spiderTap },
@@ -226,6 +230,14 @@
 
   const TAU = Math.PI * 2;
   const lerp = (a, b, t) => a + (b - a) * t;
+  // corners of a star with n points (outer radius ro, inner ri), first point up; ro = ri gives a plain n-sided polygon
+  // (for tap outlines that follow the item's shape)
+  function starPoly(n, ro, ri) {
+    const out = [];
+    if (ro === ri) { for (let k = 0; k < n; k++) { const a = -Math.PI / 2 + k * TAU / n; out.push([Math.cos(a) * ro, Math.sin(a) * ro]); } return out; }
+    for (let k = 0; k < n * 2; k++) { const a = -Math.PI / 2 + k * Math.PI / n, r = k % 2 ? ri : ro; out.push([Math.cos(a) * r, Math.sin(a) * r]); }
+    return out;
+  }
   // small deterministic random generator, so a layout looks the same every time
   function seeded(s) {
     return () => {
@@ -2094,7 +2106,8 @@
           // not round: the outline follows the shape of the item (ellipse, or rounded rectangle), turned the same way
           c.save(); c.translate(p.cx, p.cy); c.rotate(hz.rot || 0);
           c.beginPath();
-          if (hz.rect) rr(c, -hz.rx * s, -hz.ry * s, 2 * hz.rx * s, 2 * hz.ry * s, Math.min(hz.rx, hz.ry) * s * 0.4);
+          if (hz.poly) { hz.poly.forEach(([x, y]) => c.lineTo(x * s, y * s)); c.closePath(); }
+          else if (hz.rect) rr(c, -hz.rx * s, -hz.ry * s, 2 * hz.rx * s, 2 * hz.ry * s, Math.min(hz.rx, hz.ry) * s * 0.4);
           else c.ellipse(0, 0, hz.rx * s, hz.ry * s, 0, 0, Math.PI * 2);
           c.stroke(); c.restore();
         } else {
