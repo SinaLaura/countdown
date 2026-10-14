@@ -10,9 +10,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] The repo https://github.com/SinaLaura/countdown exists now. Bring it online (push + GitHub Pages for web/, as chosen; session 406605b7, started 13:11)
+
 ## Done
 
+- [x] The repo https://github.com/SinaLaura/countdown exists now. Bring it online (pushed; Pages workflow 42e67d5 – one click left for you: Settings → Pages → Source „GitHub Actions“) → https://sinalaura.github.io/countdown/
 - [x] Hourglass: let's try to use threejs.org to make the physics for the hourglass better. But just as a test (separate test page, the app itself stays free of external libraries). Open it for me then (2D with Matter.js as chosen; c278d50) → lab/hourglass-matter.html (open the file directly, needs internet for Matter.js)
 - [x] For the "solar system" make it collapse in the center during pause (ad7e6f9) → http://localhost:8765/?m=30&look=orbit
 - [x] Solar system: same (collapse in the center during pause) for the solar system's stars arrangement (ad7e6f9) → http://localhost:8765/?m=30&look=stars
