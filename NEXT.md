@@ -6,6 +6,8 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
+- [ ] Remove the "Round and round." text.
+
 ## In progress
 
 ## Done
