@@ -9,6 +9,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 - [ ] In the browser when I don't click in the centered void the theme doesn't change. Change that. (priority task)
 - [ ] Hourglass: make the bubbles bigger. It looks a little bit weird how they are stuck before free fall but just in the air, in the bottleneck, without actual physical limitation.
 - [ ] Hourglass: make the bigness of the circles proportional. The total size of them could/should fill up the whole half of the hourglass, to be proportionate to time, which it always (in general) should be.
+- [ ] Fullscreen should start only after someone presses Start.
 - [ ] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available).
 
 ## In progress
