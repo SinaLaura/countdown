@@ -1997,7 +1997,7 @@
     if (document.visibilityState === 'visible' && !$('run').hidden && !pausedAt) { tick(); keepAwake(); }
   });
 
-  // ================= start: ?m=37 or ?bis=18:30 (optional &t=Lunch, &look=3 or &look=ducks) starts right away =================
+  // ================= start: ?m=37 or ?bis=18:30 (optional &t=Lunch, &look=3 or &look=ducks, &passed=5) starts right away =================
 
   const q = new URLSearchParams(location.search);
   const saved = ls.get('countdown');
@@ -2014,7 +2014,11 @@
     history.replaceState(null, '', location.pathname);
     label = (q.get('t') || '').trim().slice(0, 40);
     if (q.has('bis')) begin(endFromTime(q.get('bis')));
-    else { setMinutes(+q.get('m')); begin(Date.now() + minutes * 60000); }
+    else {
+      setMinutes(+q.get('m'));
+      const passed = Math.max(0, Math.min(minutes - 1, Math.round(+q.get('passed') || 0)));   // e.g. for testing a half-run countdown
+      begin(Date.now() + (minutes - passed) * 60000, passed ? minutes : 0);
+    }
   } else if (saved && saved.pausedAt) {
     begin(Date.now() + (saved.end - saved.pausedAt), saved.total, true);
   } else if (saved && saved.end > Date.now()) {
