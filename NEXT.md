@@ -6,10 +6,11 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] Remove the "Round and round." text.
 - [ ] For a lot of ducks it looks weak because they are too small.
 
 ## In progress
+
+- [ ] Remove the "Round and round." text. (sonnet-a, started 17:14)
 
 ## Done
 
