@@ -6,9 +6,9 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] I don't like the display for Pomodoro. Rethink it (but it should stay consistent with the Minutes and Time menu).
-
 ## In progress
+
+- [ ] I don't like the display for Pomodoro. Rethink it (but it should stay consistent with the Minutes and Time menu). (sonnet-a, started 16:53)
 
 ## Done
 
