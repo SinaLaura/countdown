@@ -20,6 +20,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Es gibt keine Design-Einstellungen. Das Aussehen ändert sich nur durch Tippen.
 - Pro Minute gibt es ein Item.
 - **Tipp auf ein aktives Item:** kurze Reaktion (Puls, manchmal eine leicht andere Farbe nahe der Palettenfarbe, ggf. themespezifisch). Sonst passiert nichts.
+- Der Puls-Ring beim Antippen bleibt proportional zum Item: Er liegt eng um das, was man sieht, und ist nie viel größer (bei ungewöhnlichen Formen `p.ring` setzen).
 - **Tipp auf ein vergangenes Item:** nichts.
 - **Tipp auf ein neutrales Element** (Deko, Körper, Rahmen, Linien, Überschrift): nichts, außer das Theme hat bewusst eine eigene Reaktion (z.B. der Igel hüpft, `bodyTap`).
 - **Nur ein Tipp auf leeren Hintergrund** wechselt zufällig Theme und Palette.

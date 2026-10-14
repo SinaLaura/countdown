@@ -418,7 +418,7 @@
       const K = { x: cx + dx * (rb + L * 0.45), y: cy + dy * (rb + L * 0.45) - L * 0.25 };   // knee raised
       const F = { x: cx + dx * (rb + L), y: cy + dy * (rb + L) + L * 0.15 };                 // foot lower
       pts.push({
-        x: K.x, y: K.y, bx: B.x - K.x, by: B.y - K.y, fx: F.x - K.x, fy: F.y - K.y, hr: L * 0.4,
+        x: K.x, y: K.y, bx: B.x - K.x, by: B.y - K.y, fx: F.x - K.x, fy: F.y - K.y, hr: L * 0.4, ring: L * 0.16,
         lx: cx + (rnd() - 0.5) * w * 0.6, ly: h - 14 - rnd() * 6, spin: (rnd() - 0.5) * 6,
       });
     }
@@ -1616,7 +1616,9 @@
       c.globalAlpha = 1;
       if (pk) {
         c.globalAlpha = 1 - pt01; c.strokeStyle = P.fg; c.lineWidth = 2;
-        c.beginPath(); c.arc(p.cx, p.cy, (p.hr || d * 0.55) + d * 0.6 * pt01, 0, Math.PI * 2); c.stroke();
+        // the ring stays in proportion to the item (p.ring if a theme sets one, else from its tap radius / size)
+        const ring = p.ring || (p.hr ? p.hr * 0.55 : d * 0.55);
+        c.beginPath(); c.arc(p.cx, p.cy, ring * (1 + 0.6 * pt01), 0, Math.PI * 2); c.stroke();
         c.globalAlpha = 1;
       }
     }
