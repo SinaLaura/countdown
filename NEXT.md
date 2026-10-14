@@ -6,6 +6,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
+- [ ] Implement the next theme: Kugelbahn: Pro Minute rollt eine Kugel durch eine Zickzack-Bahn nach unten.
 
 ## In progress
 
