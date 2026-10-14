@@ -6,13 +6,12 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] For the "solar system" make it collapse in the center during pause
-- [ ] Solar system: same (collapse in the center during pause) for the solar system's stars arrangement
 - [ ] Hourglass: let's try to use threejs.org to make the physics for the hourglass better. But just as a test (separate test page, the app itself stays free of external libraries). Open it for me then
 
 ## In progress
 
-
+- [ ] For the "solar system" make it collapse in the center during pause (session 406605b7, started 13:03)
+- [ ] Solar system: same (collapse in the center during pause) for the solar system's stars arrangement (session 406605b7, started 13:03)
 ## Done
 
 - [x] Jar: when a bubble jumps out of the jar on its own, it still looks different than when I tap it myself. Make it look more like tapping it myself (d8cb9a2) → http://localhost:8765/?m=10&look=jar
