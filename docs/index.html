@@ -1976,8 +1976,9 @@
   }
 
   // tap an item -> it pulses; tap on empty background -> new look; anything else -> nothing
-  $('run').addEventListener('pointerdown', e => {
-    if (e.target.closest('.exit, #count, #sub')) return;
+  // (on the document, so the empty space beside the centered column in a wide browser counts as background too)
+  document.addEventListener('pointerdown', e => {
+    if ($('run').hidden || e.target.closest('.exit, #count, #sub')) return;
     const r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
     const i = hitTest(x, y);
     if (i >= shownMin) return;   // past item: nothing happens
