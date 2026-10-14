@@ -6,17 +6,17 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] When you click the done page 10 times, show the theme's picture after the last minute is gone, e.g. the hedgehog without any spikes, Saturn without any moons (and back to done after 3 clicks).
 - [ ] When the browser or app is not visibly open, does the countdown still continue (as it should)? Will it still ring?
 - [ ] It should also send a notification when it's not in focus.
 
 ## In progress
-- [ ] Make the remaining time more consistent with the font and size of the pause button. It's a little too big. (session opus, started 18:10)
-- [ ] Don't display the end time when using Pomodoro. (session opus, started 18:10)
-- [ ] Also don't show the end time when you use the mode "Time". (session opus, started 18:10)
+- [ ] When you click the done page 10 times, show the theme's picture after the last minute is gone, e.g. the hedgehog without any spikes, Saturn without any moons (and back to done after 3 clicks). (session opus, started 18:25)
 
 ## Done
 
+- [x] Make the remaining time more consistent with the font and size of the pause button. It's a little too big. (8620c77) → http://localhost:8765/?m=10 (smaller, lighter, a bit of letter spacing like the buttons)
+- [x] Don't display the end time when using Pomodoro. (8620c77) → http://localhost:8765/?pomo
+- [x] Also don't show the end time when you use the mode "Time". (8620c77) → http://localhost:8765/ (choose „Time“ and start; with „Minutes“ the end time still shows)
 - [x] The pause button and the exit button use one or two lines depending on whether it's paused or not, which looks bad on the phone because the image changes accordingly. Just keep them above each other. (233727b) → http://localhost:8765/?m=10 (tap the pause button and back: the picture keeps its size)
 - [x] In some themes the items are cut off on top, for example when the time is very long. (92c159b) → http://localhost:8765/?m=120&look=caterpillar (antennae had no room; also stars and fuse; if you saw it in another theme, tell me which)
 - [x] Enable changing the time of the pomodoro. (63cf4f8) → http://localhost:8765/ (choose „Pomodoro“, tap 25, 5 or 15 and type; kept for next time)
