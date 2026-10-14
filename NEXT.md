@@ -9,6 +9,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 - [ ] Make the remaining time more consistent with the font and size of the pause button. It's a little too big.
 - [ ] Don't display the end time when using Pomodoro.
 - [ ] Also don't show the end time when you use the mode "Time".
+- [ ] When you click the done page 10 times, move to the ending screen (and back to done after 1 click).
 
 ## In progress
 
