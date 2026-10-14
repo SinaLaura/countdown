@@ -8,11 +8,11 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 
 ## In progress
-- [ ] When the browser or app is not visibly open, does the countdown still continue (as it should)? Will it still ring? (session opus, started 18:40)
-- [ ] It should also send a notification when it's not in focus. (session opus, started 18:40)
 
 ## Done
 
+- [x] When the browser or app is not visibly open, does the countdown still continue (as it should)? Will it still ring? (065447d) → http://localhost:8765/?m=1 (switch to another tab and wait: it ends and rings on time; on a phone a sleeping web page only catches up when opened, the store app notifies)
+- [x] It should also send a notification when it's not in focus. (065447d) → http://localhost:8765/ (allow notifications on the first Start, then leave the tab)
 - [x] When you click the done page 10 times, show the theme's picture after the last minute is gone, e.g. the hedgehog without any spikes, Saturn without any moons (and back to done after 3 clicks). (d6f6291) → http://localhost:8765/?m=1&look=hedgehog (wait a minute, then tap the done page 10 times)
 - [x] Make the remaining time more consistent with the font and size of the pause button. It's a little too big. (8620c77) → http://localhost:8765/?m=10 (smaller, lighter, a bit of letter spacing like the buttons)
 - [x] Don't display the end time when using Pomodoro. (8620c77) → http://localhost:8765/?pomo
