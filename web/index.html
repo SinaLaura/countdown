@@ -2016,7 +2016,10 @@
     if (q.has('bis')) begin(endFromTime(q.get('bis')));
     else {
       setMinutes(+q.get('m'));
-      const passed = Math.max(0, Math.min(minutes - 1, Math.round(+q.get('passed') || 0)));   // e.g. for testing a half-run countdown
+      // &passed=N (N minutes already gone) is a testing aid for the local preview only: localhost with a port, or a file;
+      // the online version and the store app (Capacitor: localhost without a port) ignore it
+      const dev = location.protocol === 'file:' || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && location.port !== '');
+      const passed = dev ? Math.max(0, Math.min(minutes - 1, Math.round(+q.get('passed') || 0))) : 0;
       begin(Date.now() + (minutes - passed) * 60000, passed ? minutes : 0);
     }
   } else if (saved && saved.pausedAt) {
