@@ -8,7 +8,6 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Später soll sie mit Capacitor in den App Store (siehe [README.md](README.md)). Deshalb keine externen Abhängigkeiten oder CDNs, alles bleibt lokal.
 - Ein Theme ist ein Eintrag in `MODES` in `docs/index.html`, mit Layout (`lay`) und optionalen Hooks (`pos`, `item`, `before`, `after`, `step`, `tap`, `bodyTap`, `endArt`, `noHead` …).
 - Testen: `?m=10&look=<index oder name>.<palette>`, z.B. `?m=10&look=ducks`. Mit `&passed=5` sind schon 5 Minuten vorbei (nur in der lokalen Vorschau, online und in der App wirkungslos).
-- Die alten Dateien `Countdown.cs`/`.exe`, `build.cmd` und `countdown.ps1` stammen aus der ersten Windows-Version und werden nicht mehr gepflegt.
 
 ## Texte
 - Die App ist englisch, sehr knapp und minimalistisch.
