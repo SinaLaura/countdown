@@ -11,9 +11,8 @@
   figure { margin: 0; }
   figure svg { width: 260px; height: 260px; display: block; border-radius: 22.5%; box-shadow: 0 2px 12px rgba(0,0,0,.18); }
   figcaption { margin-top: 8px; font-size: 14px; max-width: 260px; }
-  .small { display: flex; gap: 10px; margin-top: 8px; align-items: end; }
-  .small svg { width: 60px; height: 60px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
-  .small svg + svg { width: 40px; height: 40px; }
+  .small { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; align-items: end; }
+  .small svg { width: 60px; height: 60px; display: block; border-radius: 22.5%; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
 </style>
 </head>
 <body>
@@ -89,5 +88,132 @@
 </figure>
 
 </div>
+
+<h1 style="margin-top:40px">More ideas</h1>
+<div class="row">
+
+<!-- 4: the spider sits on top of a little hourglass and hugs it -->
+<figure>
+  <svg viewBox="0 0 512 512" role="img" aria-label="Spider hugging an hourglass">
+    <rect width="512" height="512" fill="#f6f3ec"/>
+    <path d="M184 214 C184 292 244 302 244 322 C244 342 184 352 184 432 H328 C328 352 268 342 268 322 C268 302 328 292 328 214 Z" fill="#fff" stroke="#3a3a4c" stroke-width="10"/>
+    <path d="M200 246 Q256 240 312 246 C298 290 262 300 256 318 C250 300 214 290 200 246 Z" fill="#3cc8d4"/>
+    <path d="M256 320 V420" stroke="#3cc8d4" stroke-width="5"/>
+    <path d="M204 424 Q256 380 308 424 Z" fill="#3cc8d4"/>
+    <rect x="160" y="202" width="192" height="20" rx="10" fill="#3a3a4c"/>
+    <rect x="160" y="424" width="192" height="20" rx="10" fill="#3a3a4c"/>
+    <g transform="translate(256 168) scale(.5)"><use href="#legs"/><use href="#legs" transform="scale(-1 1)"/></g>
+    <circle cx="256" cy="150" r="74" fill="#3a3a4c"/>
+    <g transform="translate(256 150) scale(.76)"><use href="#face"/></g>
+  </svg>
+  <figcaption><b>4</b> · the spider sits on a little hourglass and hugs it</figcaption>
+</figure>
+
+<!-- 5: a web as the clock face, the part still left is coloured, spider in the middle -->
+<figure>
+  <svg viewBox="0 0 512 512" role="img" aria-label="Spider web as a clock">
+    <rect width="512" height="512" fill="#f6f3ec"/>
+    <path id="wedge" fill="#3cc8d4" opacity=".28"/>
+    <g id="web" fill="none" stroke="#3a3a4c" stroke-width="5" stroke-linejoin="round" opacity=".55"></g>
+    <path id="hand" stroke="#3cc8d4" stroke-width="10" stroke-linecap="round"/>
+    <g transform="translate(256 262) scale(1.05)"><use href="#legsS"/><use href="#legsS" transform="scale(-1 1)"/></g>
+    <circle cx="256" cy="262" r="70" fill="#3a3a4c"/>
+    <g transform="translate(256 258) scale(.66)"><use href="#face"/></g>
+  </svg>
+  <figcaption><b>5</b> · the web is the clock face, the part still left is coloured</figcaption>
+</figure>
+
+<!-- 6: the thread is made of minute dots: used ones pale, the rest coloured -->
+<figure>
+  <svg viewBox="0 0 512 512" role="img" aria-label="Spider on a thread of minute dots">
+    <rect width="512" height="512" fill="#f6f3ec"/>
+    <g id="dots"></g>
+    <g transform="translate(256 330) scale(.66)"><use href="#legs"/><use href="#legs" transform="scale(-1 1)"/></g>
+    <circle cx="256" cy="330" r="92" fill="#3a3a4c"/>
+    <g transform="translate(256 326) scale(.92)"><use href="#face"/></g>
+  </svg>
+  <figcaption><b>6</b> · it hangs on a thread of minute dots, the used ones go pale</figcaption>
+</figure>
+
+<!-- 7: just the face on a dark tile with the time arc, reads well very small -->
+<figure>
+  <svg viewBox="0 0 512 512" role="img" aria-label="Spider face on dark">
+    <rect width="512" height="512" fill="#2b2b3a"/>
+    <circle cx="256" cy="256" r="190" fill="none" stroke="#3f3f52" stroke-width="18"/>
+    <path d="M256 66 A190 190 0 1 1 91.5 161" fill="none" stroke="#3cc8d4" stroke-width="18" stroke-linecap="round"/>
+    <circle cx="198" cy="240" r="46" fill="#fff"/><circle cx="314" cy="240" r="46" fill="#fff"/>
+    <circle cx="205" cy="244" r="27" fill="#23232f"/><circle cx="307" cy="244" r="27" fill="#23232f"/>
+    <circle cx="214" cy="233" r="10" fill="#fff"/><circle cx="316" cy="233" r="10" fill="#fff"/>
+    <ellipse cx="148" cy="300" rx="26" ry="16" fill="#f2a29b"/><ellipse cx="364" cy="300" rx="26" ry="16" fill="#f2a29b"/>
+    <path d="M232 306 Q256 334 280 306" fill="none" stroke="#f6f3ec" stroke-width="11" stroke-linecap="round"/>
+  </svg>
+  <figcaption><b>7</b> · only the face on a dark tile with the time arc, reads well very small</figcaption>
+</figure>
+
+<!-- 8: the eight legs are the clock marks, one leg is the hand -->
+<figure>
+  <svg viewBox="0 0 512 512" role="img" aria-label="Spider whose legs are clock marks">
+    <rect width="512" height="512" fill="#f6f3ec"/>
+    <g id="legs8" fill="none" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"></g>
+    <circle cx="256" cy="256" r="96" fill="#3a3a4c"/>
+    <g transform="translate(256 252) scale(.9)"><use href="#face"/></g>
+  </svg>
+  <figcaption><b>8</b> · the eight legs are the clock marks, one coloured leg is the hand</figcaption>
+</figure>
+
+</div>
+
+<script>
+  // builds the parts of 5, 6 and 8 that are easier to compute than to write out
+  const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id);
+  const el = (tag, at) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); return e; };
+  const pt = (a, r, cx = 256, cy = 256) => [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+
+  // 5: eight spokes and five rings, slightly sagging between the spokes like a real web
+  const web = $('web'), S = 8, R = 222;
+  for (let k = 0; k < S; k++) { const [x, y] = pt(k / S * 2 * Math.PI, R); web.append(el('path', { d: `M256 256 L${x} ${y}` })); }
+  for (const r of [70, 108, 146, 184, 222]) {
+    let d = '';
+    for (let k = 0; k <= S; k++) {
+      const a = k / S * 2 * Math.PI, [x, y] = pt(a, r);
+      if (!k) d = `M${x} ${y}`;
+      else { const [qx, qy] = pt(a - Math.PI / S, r * 0.86); d += ` Q${qx} ${qy} ${x} ${y}`; }
+    }
+    web.append(el('path', { d }));
+  }
+  // the coloured part follows the outer ring of the web up to the hand (on a spoke)
+  const left = 6 / 8, end = left * 2 * Math.PI;
+  let wd = `M256 256 L256 ${256 - R}`;
+  for (let k = 1; k <= left * S; k++) {
+    const a = k / S * 2 * Math.PI, [x, y] = pt(a, R), [qx, qy] = pt(a - Math.PI / S, R * 0.86);
+    wd += ` Q${qx} ${qy} ${x} ${y}`;
+  }
+  $('wedge').setAttribute('d', wd + ' Z');
+  $('hand').setAttribute('d', `M256 256 L${pt(end, R)[0]} ${pt(end, R)[1]}`);
+
+  // 6: ten minute dots, the top three are used up
+  const dots = $('dots');
+  for (let k = 0; k < 10; k++) dots.append(el('circle', { cx: 256, cy: 34 + k * 22, r: 8, fill: k < 3 ? '#e1ddd2' : '#3cc8d4' }));
+
+  // 8: legs bent at the knee, spread evenly round the body like the marks on a dial
+  const legs = $('legs8');
+  for (let k = 0; k < 8; k++) {
+    // each leg arches outwards (the knee bends away from the vertical middle line, like the other spiders)
+    const a = (k + 0.5) / 8 * 2 * Math.PI, side = k < 4 ? -1 : 1;
+    const [sx, sy] = pt(a, 80), [cx, cy] = pt(a + side * 0.32, 215), [fx, fy] = pt(a - side * 0.06, 212);
+    legs.append(el('path', { d: `M${sx} ${sy} Q${cx} ${cy} ${fx} ${fy}`, stroke: k === 0 ? '#3cc8d4' : '#3a3a4c' }));
+  }
+
+  // all of them again at home-screen size
+  const h = document.createElement('h1'), row = document.createElement('div');
+  h.textContent = 'At home-screen size'; h.style.marginTop = '40px'; row.className = 'small';
+  document.querySelectorAll('figure svg').forEach((s, k) => {
+    const c = s.cloneNode(true), lab = document.createElement('div');
+    c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+    lab.style.cssText = 'text-align:center;font-size:12px'; lab.append(c, document.createTextNode(k + 1));
+    row.append(lab);
+  });
+  document.body.append(h, row);
+</script>
 </body>
 </html>
