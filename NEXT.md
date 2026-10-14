@@ -6,14 +6,14 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] Make the remaining time more consistent with the font and size of the pause button. It's a little too big.
-- [ ] Don't display the end time when using Pomodoro.
-- [ ] Also don't show the end time when you use the mode "Time".
-- [ ] When you click the done page 10 times, show the theme's picture after the last minute is gone, e.g. the hedgehog without any spikes, Saturn without any moons (and back to done after 1 click).
+- [ ] When you click the done page 10 times, show the theme's picture after the last minute is gone, e.g. the hedgehog without any spikes, Saturn without any moons (and back to done after 3 clicks).
 - [ ] When the browser or app is not visibly open, does the countdown still continue (as it should)? Will it still ring?
 - [ ] It should also send a notification when it's not in focus.
 
 ## In progress
+- [ ] Make the remaining time more consistent with the font and size of the pause button. It's a little too big. (session opus, started 18:10)
+- [ ] Don't display the end time when using Pomodoro. (session opus, started 18:10)
+- [ ] Also don't show the end time when you use the mode "Time". (session opus, started 18:10)
 
 ## Done
 
