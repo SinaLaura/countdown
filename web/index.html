@@ -520,6 +520,9 @@
 
   let look = ls.get('countdown-look');
   if (!look || !MODES[look.m] || !PALETTES[look.p]) look = { m: 0, p: 0 };
+  // ?look=ducks opens straight in that look
+  const wanted = MODES.findIndex(m => m.name === new URLSearchParams(location.search).get('look'));
+  if (wanted >= 0) { look.m = wanted; ls.set('countdown-look', look); }
 
   function applyPalette() {
     const p = PALETTES[look.p], root = document.documentElement;
