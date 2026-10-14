@@ -10,7 +10,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Testen: `?m=10&look=<index oder name>.<palette>`, z.B. `?m=10&look=ducks`. Mit `&passed=5` sind schon 5 Minuten vorbei (nur in der lokalen Vorschau, online und in der App wirkungslos). `?pomo` startet einen Pomodoro, `?pomo=1` gleich mit der ersten Pause.
 
 ## Pomodoro
-- Klassisch: 25 min Fokus, 5 min Pause, jede 4. Pause 15 min, endlos bis „Exit“. Der normale Countdown bleibt („Minutes“, „Time“).
+- Klassisch: 25 min Fokus, 5 min Pause, jede 4. Pause 15 min, endlos bis „Exit“. Die drei Zeiten lassen sich auf dem Startbildschirm durch Antippen der Zahlen ändern (bleiben gespeichert). Der normale Countdown bleibt („Minutes“, „Time“).
 - Am Phasenende geht das letzte Item mit Endton ab, dann startet die nächste Phase sofort in einem neuen zufälligen Look (kein End-Bildschirm). Der Untertitel zeigt „focus 2/4“, „break“ oder „long break“.
 - In einer Pause heißt der Pause-Button „Skip break“ und startet sofort die nächste Fokus-Runde. Pausen sehen aus wie Fokus-Runden (neuer Look, nicht blass).
 - Die Phase übersteht Neuladen; was bei geschlossener App abgelaufen ist, wird übersprungen (nach 12 h verworfen).
