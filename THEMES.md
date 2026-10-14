@@ -19,7 +19,7 @@ Offline genommen (`off: true` in `ALL_MODES`, im Code erhalten, nicht mehr in de
 | 8 | diamonds | Raute schrumpft |
 | 9 | tiles | Dreieck schrumpft |
 | 10 | flower | Blütenblatt fällt ab |
-| 11 | orbit | Mond driftet ins All; Pause = das ganze System fällt in den Planeten zusammen, danach geht es wieder auf |
+| 11 | orbit | Planet antippen = er quetscht sich und wackelt, der Ring schwingt; Mond driftet ins All; Pause = das ganze System fällt in den Planeten zusammen, danach geht es wieder auf |
 | 12 | jar | Glas ist am Anfang voll, der Füllstand zeigt die Restzeit; pro Minute pulsiert der oberste Ball genau wie beim Antippen und springt in der Kugel-Physik hoch, nur hoch genug, um über den Rand zu kommen, fliegt seitlich raus und verschwindet (es bleibt nichts liegen, so gewünscht); Antippen = Ball hüpft, kommt aber nie raus |
 | 13 | caterpillar | Raupe wird kürzer, am Ende Schmetterling; Antippen = sie lächelt kurz |
 | 14 | hourglass | Körner so groß, dass sie die ganze obere Hälfte füllen (proportional zur Zeit), der Hals ist so weit wie ein Korn; Sandkorn rutscht zum Hals, fällt durch und rollt auf den Haufen (oben entsteht eine Mulde, unten ein Hügel; Körner unregelmäßig); Pause = ein kurzer Schieber (gleiche Farbe und Strichstärke wie das Glas) schließt den Hals, kein Ausblenden |
