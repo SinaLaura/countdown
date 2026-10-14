@@ -6,10 +6,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available). (not started: needs your call on the cycle, e.g. 25 min work + 5 min break, long break after 4?)
-- [ ] What is the classical pomodoro technique? Choose that (for the pomodoro task above).
 
 ## In progress
+- [ ] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available). (session opus, started 16:20)
+- [ ] What is the classical pomodoro technique? Choose that (for the pomodoro task above). (session opus, started 16:20)
 
 
 ## Done
