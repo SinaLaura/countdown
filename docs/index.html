@@ -514,8 +514,8 @@
 
   // a closed loop like a rounded rectangle, inset m from the edges, running clockwise
   function loopPath(w, h, m) {
-    const x0 = m, y0 = m, x1 = w - m, y1 = h - m, r = Math.max(4, Math.min(x1 - x0, y1 - y0) * 0.25), pts = [];
-    const corner = (cx, cy, a0) => { for (let k = 0; k <= 10; k++) { const a = a0 + k / 10 * Math.PI / 2; pts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r }); } };
+    const x0 = m, y0 = m, x1 = w - m, y1 = h - m, r = Math.max(4, Math.min(x1 - x0, y1 - y0) * 0.35), pts = [];
+    const corner = (cx, cy, a0) => { for (let k = 0; k <= 24; k++) { const a = a0 + k / 24 * Math.PI / 2; pts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r }); } };
     corner(x1 - r, y0 + r, -Math.PI / 2);
     corner(x1 - r, y1 - r, 0);
     corner(x0 + r, y1 - r, Math.PI / 2);
@@ -531,7 +531,9 @@
     let lo = 0, hi = L.cum.length - 1;
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (L.cum[mid] <= s) lo = mid; else hi = mid; }
     const a = L.pts[lo], b = L.pts[hi], t = (s - L.cum[lo]) / (L.cum[hi] - L.cum[lo] || 1);
-    return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), a: Math.atan2(b.y - a.y, b.x - a.x) };
+    // the heading blends into the next piece's, so the ducks turn smoothly instead of in small jerks
+    const c = L.pts[hi + 1 < L.pts.length ? hi + 1 : 1], h0 = Math.atan2(b.y - a.y, b.x - a.x), h1 = Math.atan2(c.y - b.y, c.x - b.x);
+    return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), a: h0 + Math.atan2(Math.sin(h1 - h0), Math.cos(h1 - h0)) * t };
   }
 
   // ducklings in a row behind the mother on a loop around the pond; the first one swims right behind her
@@ -1671,7 +1673,9 @@
         if (X.still || X.gone(i) >= 1) { p.out = true; continue; }   // already gone before this layout
         const q = pathAt(D.path, D.s - p.off);
         p.x = q.x; p.y = q.y;
-        p.lost = { t: 0, h: q.a, turn: 0 };
+        // it leaves by the longest way: across the pond to the far side
+        const far = [[p.x, -d * 2, p.y], [W - p.x, W + d * 2, p.y], [p.y, p.x, -d * 2], [H - p.y, p.x, H + d * 2]].sort((a, b) => b[0] - a[0])[0];
+        p.lost = { t: 0, h: q.a, turn: 0, tx: far[1], ty: far[2] };
       }
       // lost: first it dawdles and looks around, then it slowly wanders off the screen on a curvy route
       const L = p.lost;
@@ -1681,11 +1685,18 @@
       let v;
       if (L.t < 4) v = d * 0.35 * (0.3 + 0.7 * Math.pow(Math.sin(L.t * 1.6), 2));
       else {
-        L.h = turnTo(L.h, Math.atan2(p.y - H / 2, p.x - W / 2), 0.35 * dt);
+        L.h = turnTo(L.h, Math.atan2(L.ty - p.y, L.tx - p.x), 0.5 * dt);
         v = d * Math.min(0.9, 0.3 + (L.t - 4) * 0.08);
       }
       p.x += Math.cos(L.h) * v * dt;
       p.y += Math.sin(L.h) * v * dt;
+      // only the far side lets it out; at the other edges it turns back towards where it's heading
+      const m = d * 0.4, x0 = L.tx < 0 ? -Infinity : m, x1 = L.tx > W ? Infinity : W - m;
+      const y0 = L.ty < 0 ? -Infinity : m, y1 = L.ty > H ? Infinity : H - m;
+      if (p.x < x0 || p.x > x1 || p.y < y0 || p.y > y1) {
+        p.x = Math.max(x0, Math.min(x1, p.x)); p.y = Math.max(y0, Math.min(y1, p.y));
+        L.h = turnTo(L.h, Math.atan2(L.ty - p.y, L.tx - p.x), 3 * dt);
+      }
       if (p.x < -d || p.x > W + d || p.y < -d || p.y > H + d) p.out = true;
     }
     // the others close the gap: each one paddles up to the place right behind the duckling in front
