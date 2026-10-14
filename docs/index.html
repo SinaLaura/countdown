@@ -95,6 +95,7 @@
   /* the away text stays on one line (smaller on a narrow phone), so the height never changes with "I'm back" */
   #pause { padding: 10px 12px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: min(15px, 3.6vw); }
   #run .foot #exit { padding-top: 6px; }
+  .peek .foot { visibility: hidden; }   /* the last picture from the done page: nothing to press */
 
   /* done */
   #doneText {
@@ -902,7 +903,8 @@
     pausedAt = 0;
     pomo = -1;
     byTime = false;
-    $('run').classList.remove('paused');
+    peek = false;
+    $('run').classList.remove('paused', 'peek');
     endArt('');
     document.title = TITLE;
     show('setup');
@@ -932,6 +934,7 @@
   }
   function showDone(quiet) {
     doneTimer = 0;
+    doneTaps = 0;
     show('done');
     endArt(MODES[look.m].endArt);
     if (!quiet && artKind === 'bang') boom();
@@ -2211,6 +2214,7 @@
   // tap an item -> it pulses; tap on empty background -> new look; anything else -> nothing
   // (on the document, so the empty space beside the centered column in a wide browser counts as background too)
   document.addEventListener('pointerdown', e => {
+    if (peek && !$('run').hidden) { if (++peekTaps >= 3) leavePeek(); return; }
     if ($('run').hidden || e.target.closest('.exit, #count, #sub')) return;
     const r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
     const i = hitTest(x, y);
@@ -2321,13 +2325,31 @@
   }
 
   // on the end screen a tap just swaps the colours
+  // a little secret: tapping the done page 10 times shows the look's last picture (all minutes gone,
+  // e.g. the hedgehog without spines); 3 taps there go back to the done page
+  let doneTaps = 0, peek = false, peekTaps = 0, peekArt = '';
   $('done').addEventListener('pointerdown', e => {
     if (e.target.closest('button')) return;
     look.p = nextPal(look.p);
     ls.set('countdown-look', look);
     applyPalette();
     if (artKind && still) endArt(artKind);
+    if (++doneTaps >= 10 && total > 0) {
+      e.stopPropagation();   // this tap must not count on the picture already
+      doneTaps = 0; peek = true; peekTaps = 0; peekArt = artKind;
+      endArt('');
+      shownMin = 0; goneAt.clear(); pulses.clear(); tints.clear();
+      $('run').classList.add('peek');
+      show('run');
+      relayout();
+    }
   });
+  function leavePeek() {
+    peek = false;
+    $('run').classList.remove('peek');
+    show('done');
+    endArt(peekArt);
+  }
 
   // ================= sound (browsers only allow it after a tap, so we unlock on Start) =================
 

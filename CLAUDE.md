@@ -50,6 +50,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Der Endton ist zufällig futuristisch, kein Piepen.
 - Das letzte Item geht wie alle anderen mit seiner Animation ab, während der Endton spielt. Erst danach (je nach `goneMs`, max. 3 s) kommt der End-Bildschirm.
 - Ein Theme darf eine End-Animation haben (`endArt`, z.B. Schmetterling nach der Raupe, Knall nach der Lunte).
+- Geheimnis: 10× auf die Done-Seite tippen zeigt das letzte Bild des Looks (alle Minuten weg, z.B. Igel ohne Stacheln); 3 Tipps führen zurück.
 
 ## Barrierefreiheit
 - Bei `prefers-reduced-motion` gibt es keine Dauer-Animationen (`still`).
