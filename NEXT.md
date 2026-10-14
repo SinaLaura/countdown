@@ -13,11 +13,11 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 - [ ] In the browser the snake's tongue is also cut off, because still just the center is used (for every theme). So your latest change to use the full screen seems not to work.
 
 ## In progress
-- [ ] Generate more icon ideas, and then open it for me together with the old ones. (session opus, started 15:40)
 
 
 ## Done
 
+- [x] Generate more icon ideas, and then open it for me together with the old ones. (f75813e) → lab/icons.html (open the file directly; ideas 4–8 added, plus all eight at home-screen size)
 - [x] For the car, clicking should not make a surrounding thing, but some puff from the exhaust (Auspuff). (433f8ca) → http://localhost:8765/?m=10&look=cars (tap a car)
 - [x] From the removed boring themes re-introduce the 5 best of them. And tell me how many are thrown out now. (11b2b8b) → http://localhost:8765/?m=20&look=spiral (back: spiral, clock, honey, rings, diamonds; 4 thrown out: dots, squares, bars, tiles)
 
