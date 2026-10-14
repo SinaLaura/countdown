@@ -172,7 +172,7 @@
     { name: 'diamonds', off: true, shape: 'diamond', hit: 0.4, lay: (n, w, h) => grid(n, w, h, 1.1, 0.55, { offset: true, max: 170 }) },
     { name: 'tiles',    off: true, shape: 'tri',     hit: 0.3, lay: (n, w, h) => grid(n, w, h, 0.58, 0.95, { max: 190 }) },
     // petals fall off and land on the ground
-    { name: 'flower', lay: flower, reverse: true, goneScale: 0.45, goneMs: 2600, pos: petalPos, item: petal, before: stem, after: flowerCenter },
+    { name: 'flower', lay: flower, reverse: true, goneScale: 0.45, goneMs: 2600, pos: petalPos, item: petal, halo: (X, p, q) => ({ rx: p.len * 0.58, ry: p.wid * 0.62, rot: q ? q.r : p.a }), before: stem, after: flowerCenter },
     // moons circle a planet, a passed minute drifts off into space
     { name: 'orbit', shape: 'circle', live: true, hit: 0.8, goneScale: 1, goneDim: 0.3, goneMs: 3000, lay: orbit, pos: moonPos, before: planet, bodyTap: saturnTap },
     // a full jar of balls with gravity; tapping kicks one up, a passed minute makes the top one jump out
@@ -187,21 +187,21 @@
     { name: 'fuse', shape: 'circle', live: true, endArt: 'bang', goneScale: 0.4, lay: fuse, step: fuseStep, before: fuseLine, after: sparks },
     // a bar of chocolate, pieces break off and leave a dashed gap
     { name: 'chocolate', keepHit: true, goneScale: 1, goneDim: 0, goneMs: 1100, lay: (n, w, h) => grid(n, w, h, 1.06, 0.9, { max: 52 }),
-      pos: chunkPos, item: chunk, before: chunkHoles },
+      pos: chunkPos, item: chunk, halo: (X, p, q) => ({ rx: X.d * 0.56, ry: X.d * 0.46, rot: q ? q.r || 0 : 0, rect: true }), before: chunkHoles },
     // beads slide along the wires of an abacus
-    { name: 'abacus', goneScale: 1, goneDim: 0.5, goneMs: 700, lay: abacus, pos: beadPos, item: bead, before: abacusFrame },
+    { name: 'abacus', goneScale: 1, goneDim: 0.5, goneMs: 700, lay: abacus, pos: beadPos, item: bead, halo: X => ({ rx: X.d * 0.54, ry: X.geo.abacus.bh * 0.58 }), before: abacusFrame },
     // twinkling constellation, stars go out one by one
     { name: 'stars', live: true, hit: 0.8, goneScale: 0.25, lay: stars, pos: twinkle, item: star, before: starLines },
     // a cute spider, its legs drop off one by one
     // a shy hedgehog loses its spines and blushes more and more
-    { name: 'hedgehog', live: true, noDim: true, goneScale: 0.5, goneMs: 1500, lay: hedgehog, pos: hogPos, item: spine, after: hogBody, bodyTap: hogTap },
+    { name: 'hedgehog', live: true, noDim: true, goneScale: 0.5, goneMs: 1500, lay: hedgehog, pos: hogPos, item: spine, halo: (X, p, q) => ({ rx: p.len * 0.58, ry: Math.max(p.wid * 0.75, 4), rot: p.ang + (q ? q.r || 0 : 0) }), after: hogBody, bodyTap: hogTap },
     // people in a cinema, one leaves per minute; the countdown runs on the screen instead of the headline
     { name: 'cinema', live: true, noHead: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: cinema, pos: leave, item: person, before: cinemaScreen },
     { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody, bodyTap: spiderTap },
     // toy cars pottering around, tapping one makes it zoom off a bit, a passed minute drives off screen
-    { name: 'cars', live: true, hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 3000, lay: cars, step: carStep, pos: carPos, item: car, tap: carTap },
+    { name: 'cars', live: true, hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 3000, lay: cars, step: carStep, pos: carPos, item: car, halo: (X, p, q) => ({ rx: X.d * 0.56, ry: X.d * 0.34, rot: q ? q.r : p.a, rect: true }), tap: carTap },
     // ducklings swim in line behind their mother, the last one loses track each minute; tap the mother and she looks back
-    { name: 'ducks', live: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: ducks, step: duckStep, pos: duckPos, item: duckling,
+    { name: 'ducks', live: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: ducks, step: duckStep, pos: duckPos, item: duckling, halo: (X, p, q) => ({ rx: X.d * 0.62, ry: X.d * 0.4, rot: q ? q.r || 0 : 0 }),
       tap: () => peep(), after: motherDuck, bodyTap: duckTap },
     // a thermometer that gets colder each minute; the top segment cools off and fades, the temperature replaces the headline
     { name: 'thermometer', live: true, noHead: true, noDim: true, goneScale: 1, goneDim: 0, goneMs: 1800, goneLinear: true, endArt: 'shatter',
@@ -1975,8 +1975,18 @@
       if (pk) {
         c.globalAlpha = 1 - pt01; c.strokeStyle = P.fg; c.lineWidth = 2;
         // the ring stays in proportion to the item (p.ring if a theme sets one, else from its tap radius / size)
-        const ring = p.ring || (p.hr ? p.hr * 0.55 : d * 0.55);
-        c.beginPath(); c.arc(p.cx, p.cy, ring * (1 + 0.6 * pt01), 0, Math.PI * 2); c.stroke();
+        const hz = M.halo && M.halo(X, p, p.q), s = 1 + 0.6 * pt01;
+        if (hz) {
+          // not round: the outline follows the shape of the item (ellipse, or rounded rectangle), turned the same way
+          c.save(); c.translate(p.cx, p.cy); c.rotate(hz.rot || 0);
+          c.beginPath();
+          if (hz.rect) rr(c, -hz.rx * s, -hz.ry * s, 2 * hz.rx * s, 2 * hz.ry * s, Math.min(hz.rx, hz.ry) * s * 0.4);
+          else c.ellipse(0, 0, hz.rx * s, hz.ry * s, 0, 0, Math.PI * 2);
+          c.stroke(); c.restore();
+        } else {
+          const ring = p.ring || (p.hr ? p.hr * 0.55 : d * 0.55);
+          c.beginPath(); c.arc(p.cx, p.cy, ring * s, 0, Math.PI * 2); c.stroke();
+        }
         c.globalAlpha = 1;
       }
     }

@@ -21,7 +21,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Die Menge, die man sieht, ist proportional zur Zeit: Die Items füllen zusammen ihren Bereich (z.B. die ganze obere Hälfte der Sanduhr), und ihre Größe richtet sich danach.
 - Die Items nutzen den Platz des Browsers (nicht unbedingt ganz, aber deutlich): Kleine Zeiten ergeben große Items, nicht kleine Punkte in einer leeren Fläche. Das gilt auch für Bewegungen (ein Auto oder eine Ente fährt über den ganzen Bildschirm, Stacheln und Beine verteilen sich über die ganze Breite).
 - **Tipp auf ein aktives Item:** kurze Reaktion (Puls, manchmal eine leicht andere Farbe nahe der Palettenfarbe, ggf. themespezifisch). Sonst passiert nichts.
-- Der Puls-Ring beim Antippen bleibt proportional zum Item: Er liegt eng um das, was man sieht, und ist nie viel größer (bei ungewöhnlichen Formen `p.ring` setzen).
+- Der Puls-Ring beim Antippen bleibt proportional zum Item: Er liegt eng um das, was man sieht, und ist nie viel größer. Bei runden Items ein Kreis (ggf. `p.ring`), bei nicht runden Formen (Blütenblatt, Auto, Ente, Stachel, Schokolade, Perle) folgt er der Form mit dem Theme-Hook `halo` (Ellipse oder Rechteck, gedreht wie das Item).
 - **Tipp auf ein vergangenes Item:** nichts.
 - **Tipp auf ein neutrales Element** (Deko, Körper, Rahmen, Linien, Überschrift): nichts, außer das Theme hat bewusst eine eigene Reaktion (z.B. der Igel hüpft, `bodyTap`).
 - **Nur ein Tipp auf leeren Hintergrund** wechselt zufällig Theme und Palette.
