@@ -13,7 +13,8 @@ Repeat for each item:
 2. **Claim.** Move the picked line(s) to **In progress**, each as its own line `- [ ] <task> (<your session name>, started <HH:MM>)`. Change no other line. Use exact line edits, never rewrite the whole file, because the user may be adding lines at the same moment. Commit only `NEXT.md` right away, so parallel sessions don't take them.
 3. **Do it.** Follow CLAUDE.md: read `web/index.html` fresh right before each edit; test in the browser (headless Edge works: `--headless --dump-dom`, or export the canvas with `toDataURL` for a look); bump the cache in `web/sw.js` after code changes; update `THEMES.md` for theme work. If the task is unclear or needs a decision only the user can make, don't guess: move it back to the top of **To do** with a short question in parentheses, commit, and go on to the next item.
 4. **Commit** your work with explicit paths (no `git add -A`).
-5. **Done.** Read `NEXT.md` fresh again, move each claimed line to **Done** as `- [x] <task> (<commit hash>)` (combined items share the hash), commit only `NEXT.md`.
-6. Write the user a short note for these items: what changed, how to see it (a `http://localhost:8765/?look=...&m=...` link if useful), what was tested and what was not.
+5. **Done.** Read `NEXT.md` fresh again, move each claimed line to **Done** as `- [x] <task> (<commit hash>) → <check link>` (combined items share the hash), commit only `NEXT.md`.
+   The check link is a local preview URL that shows the change straight away, so the user can look later: `http://localhost:8765/?m=10&look=<theme name>`, plus `&passed=N` if the change only shows after some minutes, or a path like `http://localhost:8765/test-xyz.html` for a separate page. Without a visible change (e.g. docs, skills) write `→ no visual change` instead.
+6. Write the user a short note for these items: what changed, the same check link, what was tested and what was not. Remind them that the link needs the preview server running (`cd web && py -m http.server 8765`).
 
 Then go back to step 1, unless the argument was "one". New lines the user adds while you work are picked up at the next step 1.
