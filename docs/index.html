@@ -31,6 +31,10 @@
              max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
   }
   .screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  /* while counting down the picture uses the whole browser width; heading and buttons stay in the column */
+  main:has(> #run:not([hidden])) { max-width: none; }
+  #run > :not(#stage) { margin-left: max(0px, calc((100% - 600px) / 2)); }
+  #run > .foot { margin-right: max(0px, calc((100% - 600px) / 2)); }
   [hidden] { display: none !important; }
   button, input { font: inherit; color: inherit; background: none; border: 0; outline: none; }
   button { cursor: pointer; touch-action: manipulation; }
@@ -163,7 +167,7 @@
   const ALL_MODES = [
     { name: 'dots',     off: true, shape: 'circle',  lay: (n, w, h) => grid(n, w, h, 1.6, 1.6) },
     { name: 'squares',  off: true, shape: 'square',  lay: (n, w, h) => grid(n, w, h, 1.5, 1.5) },
-    { name: 'snake',    shape: 'circle',  body: 0.42, eyes: true, lay: (n, w, h) => grid(n, w, h, 1.45, 1.45, { snake: true }), after: snakeFace, tap: snakeTap },
+    { name: 'snake',    shape: 'circle',  body: 0.42, eyes: 'turn', lay: (n, w, h) => grid(n, w, h, 1.45, 1.45, { snake: true, pad: 1.5 }), after: snakeFace, tap: snakeTap },
     { name: 'spiral',   shape: 'circle',  guide: 'path', lay: spiral },
     { name: 'clock',    shape: 'circle',  guide: 'ring', lay: ring },
     { name: 'bars',     off: true, shape: 'bar',     lay: (n, w, h) => grid(n, w, h, 1.8, 3.6, { max: 65 }) },
@@ -227,11 +231,13 @@
   function grid(n, w, h, cw, ch, opt) {
     opt = opt || {};
     const ex = opt.offset ? 0.5 : 0;
-    let d = opt.max || 120, cols = 1, rows = 1;   // as big as fits: the items use the space
+    // as big as fits: the items use the space (pad: extra room at the edges in item sizes, e.g. for the snake's tongue)
+    const pad = 1 + (opt.pad || 0);
+    let d = opt.max || Math.max(120, Math.min(w, h) / 2), cols = 1, rows = 1;
     for (; d > 2; d -= 0.5) {
-      cols = Math.max(1, Math.min(n, Math.floor((w - d) / (cw * d) + 1 - ex)));
+      cols = Math.max(1, Math.min(n, Math.floor((w - d * pad) / (cw * d) + 1 - ex)));
       rows = Math.ceil(n / cols);
-      if ((rows - 1) * ch * d + d <= h && (cols - 1 + ex) * cw * d + d <= w) break;
+      if ((rows - 1) * ch * d + d * pad <= h && (cols - 1 + ex) * cw * d + d * pad <= w) break;
     }
     const bw = (cols - 1 + (rows > 1 ? ex : 0)) * cw * d, bh = (rows - 1) * ch * d;
     const x0 = (w - bw) / 2, y0 = (h - bh) / 2, pts = [];
@@ -1181,33 +1187,37 @@
     if (snakeRun !== born) { snakeRun = born; snakeKind = Math.random() * 3 | 0; }
     G.react = performance.now();
   }
+  // the angle that turns a face drawn looking "down" towards where the head is going (away from the next item)
+  function headTurn(pts) {
+    const p = pts[0], q = pts[1] || { cx: p.cx, cy: p.cy - 1 };
+    return Math.atan2(p.cy - q.cy, p.cx - q.cx) - Math.PI / 2;
+  }
+  // all three are drawn in the head's own turn, so mouth, tear and tongue sit at the front like the eyes
   function snakeFace(X) {
     const G = X.geo, t = G.react ? (X.now - G.react) / 1400 : 1;
     if (t < 0 || t >= 1 || X.min <= 0 || X.d <= 12) return;
-    const { c, P, d } = X, p = X.pts[0], q = X.pts[1] || { cx: p.cx - 1, cy: p.cy };
+    const { c, P, d } = X, p = X.pts[0];
     const a = t < 0.12 ? t / 0.12 : t > 0.75 ? (1 - t) / 0.25 : 1;
+    c.save(); c.translate(p.cx, p.cy); c.rotate(headTurn(X.pts));
     c.lineCap = 'round'; c.globalAlpha = a;
     if (snakeKind === 0) {
       c.strokeStyle = P.bg; c.lineWidth = Math.max(1.5, d * 0.055);
-      c.beginPath(); c.arc(p.cx, p.cy + d * 0.02, d * 0.15 * (0.6 + 0.4 * a), Math.PI * 0.18, Math.PI * 0.82); c.stroke();
+      c.beginPath(); c.arc(0, d * 0.02, d * 0.15 * (0.6 + 0.4 * a), Math.PI * 0.18, Math.PI * 0.82); c.stroke();
     } else if (snakeKind === 1) {
       c.strokeStyle = P.bg; c.lineWidth = Math.max(1.5, d * 0.055);
-      c.beginPath(); c.arc(p.cx, p.cy + d * 0.3, d * 0.13, Math.PI * 1.2, Math.PI * 1.8); c.stroke();
+      c.beginPath(); c.arc(0, d * 0.3, d * 0.13, Math.PI * 1.2, Math.PI * 1.8); c.stroke();
       c.fillStyle = mix(P.fg, '#ffffff', 0.6);   // a tear running down
-      const ty = p.cy - d * 0.02 + d * 0.3 * t;
-      c.beginPath(); c.arc(p.cx - d * 0.16, ty, d * 0.045, 0, TAU); c.fill();
+      c.beginPath(); c.arc(-d * 0.16, -d * 0.02 + d * 0.3 * t, d * 0.045, 0, TAU); c.fill();
     } else {
       // forked tongue flicks out of the front and back in
-      const dx = p.cx - q.cx, dy = p.cy - q.cy, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
-      const out = Math.abs(Math.sin(t * TAU * 2)) * d * 0.55, r = d * 0.42, x0 = p.cx + ux * r, y0 = p.cy + uy * r;
-      const x1 = x0 + ux * out, y1 = y0 + uy * out, f = out * 0.35;
+      const out = Math.abs(Math.sin(t * TAU * 2)) * d * 0.55, y0 = d * 0.42, y1 = y0 + out, f = out * 0.35;
       c.strokeStyle = P.text; c.lineWidth = Math.max(1.5, d * 0.06);
-      c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1);
-      c.moveTo(x1, y1); c.lineTo(x1 + ux * f - uy * f * 0.6, y1 + uy * f + ux * f * 0.6);
-      c.moveTo(x1, y1); c.lineTo(x1 + ux * f + uy * f * 0.6, y1 + uy * f - ux * f * 0.6);
+      c.beginPath(); c.moveTo(0, y0); c.lineTo(0, y1);
+      c.moveTo(0, y1); c.lineTo(-f * 0.6, y1 + f);
+      c.moveTo(0, y1); c.lineTo(f * 0.6, y1 + f);
       c.stroke();
     }
-    c.globalAlpha = 1; c.lineCap = 'butt';
+    c.restore();
     X.more = true;
   }
 
@@ -2017,9 +2027,12 @@
     if (X.more) busy = true;
 
     if (M.eyes && shownMin > 0 && d > 12) {
+      // eyes: 'turn' = the face looks the way the head is going (like the snake's tongue), otherwise straight at us
       const p = pts[0], e = d * 0.09 * intro(0);
+      c.save(); c.translate(p.cx, p.cy); if (M.eyes === 'turn') c.rotate(headTurn(pts));
       c.fillStyle = P.bg;
-      c.beginPath(); c.arc(p.cx - d * 0.16, p.cy - d * 0.06, e, 0, Math.PI * 2); c.arc(p.cx + d * 0.16, p.cy - d * 0.06, e, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(-d * 0.16, -d * 0.06, e, 0, Math.PI * 2); c.arc(d * 0.16, -d * 0.06, e, 0, Math.PI * 2); c.fill();
+      c.restore();
     }
     return busy;
   }

@@ -10,7 +10,7 @@ Offline genommen (`off: true` in `ALL_MODES`, im Code erhalten, nicht mehr in de
 |---|---|---|
 | 0 | dots | Punkt schrumpft zu grauem Punkt |
 | 1 | squares | Quadrat schrumpft |
-| 2 | snake | Schlange zieht den Schwanz ein; Antippen = Kopf reagiert (lächeln, traurig mit Träne oder Zunge züngeln), pro Durchlauf zufällig gewählt und dann immer gleich |
+| 2 | snake | Schlange zieht den Schwanz ein; Antippen = Kopf reagiert (lächeln, traurig mit Träne oder Zunge züngeln), pro Durchlauf zufällig gewählt und dann immer gleich; Augen, Mund und Zunge schauen in Kopfrichtung, Rand lässt Platz für die Zunge |
 | 3 | spiral | Spirale läuft von außen nach innen ab |
 | 4 | clock | Punkt im Uhr-Kreis erlischt |
 | 5 | bars | Balken schrumpft |
