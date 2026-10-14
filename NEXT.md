@@ -6,14 +6,13 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] For a lot of ducks it looks weak because they are too small.
-
 ## In progress
 
-- [ ] Remove the "Round and round." text. (sonnet-a, started 17:14)
+- [ ] For a lot of ducks it looks weak because they are too small. (sonnet-a, started 17:18)
 
 ## Done
 
+- [x] Remove the "Round and round." text. (870e44c) → http://localhost:8765/ (choose „Pomodoro“: the sentence ends after „break.“)
 - [x] The Pomodoro menu looks good, but above it write a sentence about how the time setting will be then. Make a preview. (8b50b33) → http://localhost:8765/ (choose „Pomodoro“; the sentence changes as you tap − and +)
 
 - [x] I don't like the display for Pomodoro. Rethink it (but it should stay consistent with the Minutes and Time menu). (2743c2b) → http://localhost:8765/ (choose „Pomodoro“: Focus, Break, Long break, each with − number + like Minutes)
