@@ -6,16 +6,16 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] Enable changing the time of the pomodoro.
 - [ ] In some themes the items are cut off on top, for example when the time is very long.
 - [ ] The pause button and the exit button use one or two lines depending on whether it's paused or not, which looks bad on the phone because the image changes accordingly. Just keep them above each other.
 
 ## In progress
 
-- [ ] Disable zoom in. (opus-a, started 16:16)
+- [ ] Enable changing the time of the pomodoro. (opus-a, started 16:22)
 
 ## Done
 
+- [x] Disable zoom in. (b0326a4) → http://localhost:8765/?m=10 (on the phone: pinch and double-tap no longer zoom; desktop: ctrl+wheel / ctrl+plus do nothing)
 - [x] The honey cells should not get a round outline when you click them, but a hexagonal one. (2e450eb) → http://localhost:8765/?m=10&look=honey (tap a cell)
 - [x] The stars should also get a different outline shape when clicked (not round). (2e450eb) → http://localhost:8765/?m=10&look=stars (tap a star)
 - [x] The hedgehog should get a spiky outline when clicked, and only at the edge of its spike. (2e450eb) → http://localhost:8765/?m=10&look=hedgehog (tap a spike)
