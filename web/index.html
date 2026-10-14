@@ -523,9 +523,6 @@
 
   let look = ls.get('countdown-look');
   if (!look || !MODES[look.m] || !PALETTES[look.p]) look = { m: 0, p: 0 };
-  // ?look=ducks opens straight in that look
-  const wanted = MODES.findIndex(m => m.name === new URLSearchParams(location.search).get('look'));
-  if (wanted >= 0) { look.m = wanted; ls.set('countdown-look', look); }
 
   function applyPalette() {
     const p = PALETTES[look.p], root = document.documentElement;
@@ -648,6 +645,7 @@
     $('pause').textContent = "I'm back";
     $('sub').textContent = (label ? label + ' · ' : '') + 'paused';
     document.title = 'Paused · ' + (label || TITLE);
+    kick();
   }
   function resume() {
     end += Date.now() - pausedAt;
@@ -661,6 +659,7 @@
     tick();
     keepAwake();
     scheduleAlarm();
+    kick();
   }
   $('pause').onclick = () => pausedAt ? resume() : pause();
 
@@ -711,6 +710,9 @@
 
   const canvas = $('canvas'), ctx = canvas.getContext('2d');
   let W = 0, H = 0, geo = { pts: [], d: 0 }, born = 0, raf = 0, lastNow = 0;
+  // calm: 1 while running, eases to 0 during a pause; motionT: animation clock (s) that slows down with it,
+  // so moving looks come to rest while paused and pick up again afterwards
+  let calm = 1, motionT = 0;
   const goneAt = new Map(), pulses = new Map(), tints = new Map();
   const still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -811,7 +813,7 @@
 
   // ---- orbit ----
   function moonPos(X, i, g, p) {
-    const O = X.geo.orbit, t = X.still ? 0 : X.now / 1000, a = p.a0 + p.w * t, r = p.r + g * g * O.R * 1.3;
+    const O = X.geo.orbit, t = X.still ? 0 : X.t, a = p.a0 + p.w * t, r = p.r + g * g * O.R * 1.3;
     return { x: O.cx + Math.cos(a) * r, y: O.cy + Math.sin(a) * r, a: g > 0 ? 1 - g : undefined };
   }
   function planet(X) {
@@ -889,7 +891,7 @@
   function crawl(X, i, g, p) {
     const s = i === 0 ? 1.15 : 1;
     if (X.still || g >= 1) return { x: p.x, y: p.y, s };
-    return { x: p.x, y: p.y + Math.sin(X.now / 220 - i * 0.8) * X.d * 0.12 * (1 - g), s };
+    return { x: p.x, y: p.y + Math.sin(X.t * 1000 / 220 - i * 0.8) * X.d * 0.12 * (1 - g), s };
   }
   function antennae(X) {
     if (X.min <= 0) return;
@@ -940,11 +942,13 @@
     G.s = X.min - 0.5 + (goneAt.has(X.min) ? 1 - X.gone(X.min) : 0);
     G.burn = X.min > 0 ? along(X.pts, G.s) : null;
     if (!X.still && G.burn) for (let k = 0; k < 3; k++) {
+      if (Math.random() > X.calm) continue;
       const a = Math.random() * TAU, v = 40 + Math.random() * 120;
       G.sparks.push({ x: G.burn.x, y: G.burn.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, life: 0.25 + Math.random() * 0.4 });
     }
-    G.sparks = G.sparks.filter(p => (p.life -= dt) > 0);
-    G.sparks.forEach(p => { p.vy += 260 * dt; p.x += p.vx * dt; p.y += p.vy * dt; });
+    const rdt = X.dt;   // sparks keep real time so they finish flying even during a pause
+    G.sparks = G.sparks.filter(p => (p.life -= rdt) > 0);
+    G.sparks.forEach(p => { p.vy += 260 * rdt; p.x += p.vx * rdt; p.y += p.vy * rdt; });
     return G.sparks.length > 0;
   }
   function fuseLine(X) {
@@ -968,7 +972,7 @@
     const hot = mix(P.fg, '#ffffff', 0.5);
     c.fillStyle = P.fg;
     c.globalAlpha = 0.3;
-    c.beginPath(); c.arc(G.burn.x, G.burn.y, d * (0.6 + 0.12 * Math.sin(X.now / 50)), 0, TAU); c.fill();
+    c.beginPath(); c.arc(G.burn.x, G.burn.y, d * (0.6 + 0.12 * Math.sin(X.t * 1000 / 50)), 0, TAU); c.fill();
     c.globalAlpha = 1;
     c.strokeStyle = hot; c.lineWidth = 1.5;
     for (const p of G.sparks) {
@@ -1019,7 +1023,7 @@
 
   // ---- constellation ----
   function twinkle(X, i, g, p) {
-    return X.still || g >= 1 ? null : { x: p.x, y: p.y, s: 1 + 0.18 * Math.sin(X.now / 380 + p.ph) };
+    return X.still || g >= 1 ? null : { x: p.x, y: p.y, s: 1 + 0.18 * Math.sin(X.t * 1000 / 380 + p.ph) };
   }
   function star(X, i, x, y, k) {
     const c = X.c, r = X.d * k / 2, ri = r * 0.3;
@@ -1039,7 +1043,7 @@
   }
 
   // ---- spider ----
-  const bob = X => X.still ? 0 : Math.sin(X.now / 700) * X.geo.spider.R * 0.03;
+  const bob = X => X.still ? 0 : Math.sin(X.t * 1000 / 700) * X.geo.spider.R * 0.03;
   function legPos(X, i, g, p) {
     const b = bob(X);
     if (g <= 0) return { x: p.x, y: p.y + b, r: 0 };
@@ -1148,12 +1152,14 @@
   // ---- ducks ----
   // while the mother looks back (1.8 s) the whole line stops; she turns around and back again
   function lookBack(X) {
-    const D = X.geo.duck;
-    if (!D.look || X.still) return 0;
-    const t = (X.now - D.look) / 1800;
-    if (t >= 1) { D.look = null; return 0; }
-    const e = t < 0.25 ? t / 0.25 : t > 0.75 ? (1 - t) / 0.25 : 1;
-    return e * e * (3 - 2 * e);
+    const D = X.geo.duck, p = 1 - X.calm;   // during a pause she turns round and keeps watching them
+    let e = 0;
+    if (D.look && !X.still) {
+      const t = (X.now - D.look) / 1800;
+      if (t >= 1) D.look = null;
+      else e = t < 0.25 ? t / 0.25 : t > 0.75 ? (1 - t) / 0.25 : 1;
+    }
+    return Math.max(e * e * (3 - 2 * e), p * p * (3 - 2 * p));
   }
   function duckStep(X, dt) {
     const D = X.geo.duck, d = X.d, P = X.pts;
@@ -1193,7 +1199,7 @@
   function duckPos(X, i, g, p) {
     const D = X.geo.duck;
     if (p.out || (g > 0 && !p.lost)) return { x: p.x, y: p.y, a: 0 };
-    const wob = X.still ? 0 : Math.sin(X.now / 260 + i * 1.3) * 0.12;
+    const wob = X.still ? 0 : Math.sin(X.t * 1000 / 260 + i * 1.3) * 0.12;
     if (p.lost) return { x: p.x, y: p.y, r: p.lost.h + wob * 1.5 };
     const q = pathAt(D.path, D.s - p.off);
     return { x: q.x, y: q.y, r: q.a + wob };
@@ -1217,7 +1223,7 @@
   function duckling(X, i, x, y, k, q, p, col) { duckShape(X.c, X.P, x, y, q ? q.r : 0, X.d * k, col); }
   function motherDuck(X) {
     const { c, P, d } = X, D = X.geo.duck, q = pathAt(D.path, D.s), k = easeBack(X.all);
-    const wob = X.still ? 0 : Math.sin(X.now / 300) * 0.08;
+    const wob = X.still ? 0 : Math.sin(X.t * 1000 / 300) * 0.08;
     D.mx = q.x; D.my = q.y;
     if (k > 0) duckShape(c, P, q.x, q.y, q.a + Math.PI * lookBack(X) + wob, d * 1.7 * k, mix(P.fg, P.text, 0.3));
   }
@@ -1361,17 +1367,17 @@
     if (!p.g) { c.fillStyle = X.P.dim; rr(c, x - s * 0.5, y + s * 0.12, s, s * 0.42, s * 0.12); c.fill(); }   // own seat hides the legs
   }
   function cinemaScreen(X) {
-    const { c, P, pts } = X, S = X.geo.cinema, fl = X.still ? 1 : 0.93 + 0.07 * Math.random();
+    const { c, P, pts } = X, S = X.geo.cinema;
     c.globalAlpha = 0.06 * X.all; c.fillStyle = P.text;   // projector light
     c.beginPath(); c.moveTo(S.sx, S.sy + S.sh); c.lineTo(S.sx + S.sw, S.sy + S.sh); c.lineTo(W * 0.56, H); c.lineTo(W * 0.44, H); c.fill();
-    c.globalAlpha = X.all * fl;
+    c.globalAlpha = X.all;
     c.fillStyle = mix(P.text, P.bg, 0.08);
     rr(c, S.sx, S.sy, S.sw, S.sh, 6); c.fill();
     // the countdown is the movie
     c.fillStyle = P.bg; c.textAlign = 'center'; c.textBaseline = 'middle';
     c.font = '700 ' + Math.round(S.sh * 0.34) + 'px ' + FONT;
     c.fillText(pausedAt ? 'paused' : X.min + ' left', S.sx + S.sw / 2, S.sy + S.sh * 0.45);
-    c.globalAlpha = X.all * fl * 0.6;
+    c.globalAlpha = X.all * 0.6;
     c.font = Math.round(S.sh * 0.1) + 'px ' + FONT;
     c.fillText(label ? label + ' · ' + fmt(end) : fmt(end), S.sx + S.sw / 2, S.sy + S.sh * 0.76);
     c.globalAlpha = X.all;
@@ -1382,11 +1388,15 @@
   // returns true while something is still animating
   function draw(now) {
     const c = ctx, M = MODES[look.m], P = PALETTES[look.p], pts = geo.pts, d = geo.d, n = pts.length;
-    let busy = !!M.live && !still;
     c.clearRect(0, 0, W, H);
     if (!n) return false;
     const dt = lastNow ? Math.min(0.05, (now - lastNow) / 1000) : 1 / 60;
     lastNow = now;
+    const target = pausedAt ? 0 : 1;
+    calm = still ? target : Math.abs(calm - target) < 0.005 ? target : calm + (target - calm) * Math.min(1, dt * 3);
+    motionT += dt * calm;
+    let busy = !!M.live && !still && calm > 0;
+    if (calm !== target) busy = true;
 
     const all = still ? 1 : clamp((now - born) / 500);
     if (all < 1) busy = true;
@@ -1400,8 +1410,8 @@
       if (t < 1) busy = true; else goneAt.delete(i);
       return easeOut(t);
     };
-    const X = { c, P, d, pts, n, now, min: shownMin, gone, intro, all, still, geo };
-    if (M.step && M.step(X, dt)) busy = true;
+    const X = { c, P, d, pts, n, now, t: motionT, calm, dt, min: shownMin, gone, intro, all, still, geo };
+    if (M.step && M.step(X, dt * calm)) busy = true;
 
     // positions first (some modes move their items), then guides, then the items
     for (let i = 0; i < n; i++) {
@@ -1838,12 +1848,18 @@
     if (document.visibilityState === 'visible' && !$('run').hidden && !pausedAt) { tick(); keepAwake(); }
   });
 
-  // ================= start: ?m=37 or ?bis=18:30 (optional &t=Lunch, &look=3) starts right away =================
+  // ================= start: ?m=37 or ?bis=18:30 (optional &t=Lunch, &look=3 or &look=ducks) starts right away =================
 
   const q = new URLSearchParams(location.search);
   const saved = ls.get('countdown');
   ls.del('essen');
-  if (q.has('look')) { const v = q.get('look').split('.').map(Number); look = { m: (v[0] || 0) % MODES.length, p: (v[1] || 0) % PALETTES.length }; applyPalette(); }
+  if (q.has('look')) {
+    // a number (look.palette, e.g. 3 or 3.2) or a look's name (ducks)
+    const v = q.get('look').split('.'), byName = MODES.findIndex(m => m.name === v[0]);
+    look = { m: byName >= 0 ? byName : (+v[0] || 0) % MODES.length, p: (+v[1] || 0) % PALETTES.length };
+    ls.set('countdown-look', look);
+    applyPalette();
+  }
   if (saved) label = saved.label || '';
   if (q.has('m') || q.has('bis')) {
     history.replaceState(null, '', location.pathname);
