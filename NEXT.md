@@ -6,16 +6,16 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] The snake's eyes should look in the direction as before, but change just for the click and the tongue movement: the right eye should visibly move more to the left, so it looks as if the snake changed its looking direction.
 - [ ] Can you make the disappearing ducks take the longest way to leave, not the shortest.
 - [ ] The ducks' movements seem not so smooth anymore since you made the screen dynamically wide.
 
 ## In progress
-- [ ] The car puff is great, but it should be directly where the car is, not so far away from it. (session opus, started 16:45)
+- [ ] The snake's eyes should look in the direction as before, but change just for the click and the tongue movement: the right eye should visibly move more to the left, so it looks as if the snake changed its looking direction. (session opus, started 16:55)
 
 
 ## Done
 
+- [x] The car puff is great, but it should be directly where the car is, not so far away from it. (248c120) → http://localhost:8765/?m=10&look=cars (tap a car)
 - [x] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available). (9c39041) → http://localhost:8765/ (choose „Pomodoro“ on the start screen; or directly http://localhost:8765/?pomo, ?pomo=1 starts with a break)
 - [x] What is the classical pomodoro technique? Choose that (for the pomodoro task above). (9c39041) → 25 min focus, 5 min break, every 4th break 15 min (the classic allows 15–30)
 - [x] The snake's tongue looks strange, because her eyes don't move in the same direction. Fix it. (b0532fd) → http://localhost:8765/?m=10&look=snake (tap the head a few times; reload for another reaction)
