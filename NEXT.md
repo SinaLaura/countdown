@@ -6,6 +6,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
+- [ ] The repo https://github.com/SinaLaura/countdown exists now. Bring it online
 
 ## In progress
 
