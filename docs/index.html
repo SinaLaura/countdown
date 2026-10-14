@@ -1977,7 +1977,7 @@
     c.fillText(pausedAt ? 'paused' : X.min + ' left', S.sx + S.sw / 2, S.sy + S.sh * 0.45);
     c.globalAlpha = X.all * 0.6;
     c.font = Math.round(S.sh * 0.1) + 'px ' + FONT;
-    c.fillText(label ? label + ' · ' + fmt(end) : fmt(end), S.sx + S.sw / 2, S.sy + S.sh * 0.76);
+    c.fillText(subText(), S.sx + S.sw / 2, S.sy + S.sh * 0.76);   // same line as the subtitle: no end time in Pomodoro or Time mode
     c.globalAlpha = X.all;
     c.fillStyle = P.dim;   // empty seats
     for (const p of pts) { rr(c, p.x - p.s / 2, p.y + p.s * 0.12, p.s, p.s * 0.42, p.s * 0.12); c.fill(); }
