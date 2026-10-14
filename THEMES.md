@@ -20,7 +20,7 @@ Regeln für alle Themes stehen in [CLAUDE.md](CLAUDE.md). Testen: `?m=10&look=<i
 | 11 | orbit | Mond driftet ins All |
 | 12 | jar | Ball platzt (Bälle mit Schwerkraft, Antippen schubst) |
 | 13 | caterpillar | Raupe wird kürzer, am Ende Schmetterling |
-| 14 | hourglass | Sandkorn fällt nach unten (Pause = ein Stab schiebt sich in den Hals) |
+| 14 | hourglass | Sandkorn fällt nach unten (Pause = ein kurzer Schieber schließt den Hals, erst danach wird alles blass) |
 | 15 | fuse | Lunte brennt ab, am Ende Knall |
 | 16 | chocolate | Stück bricht ab |
 | 17 | abacus | Perle rutscht nach rechts |

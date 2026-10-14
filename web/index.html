@@ -179,7 +179,7 @@
     { name: 'caterpillar', shape: 'circle', live: true, body: 0.8, eyes: true, stripes: true, endArt: 'butterfly',
       lay: (n, w, h) => grid(n, w, h, 0.78, 1.6, { snake: true, max: 40 }), pos: crawl, after: antennae },
     // sand runs from the top bulb into the bottom one
-    { name: 'hourglass', shape: 'circle', goneScale: 1, goneDim: 0.55, goneMs: 1400, lay: hourglass, pos: grainPos, before: glass, after: plug },
+    { name: 'hourglass', shape: 'circle', goneScale: 1, goneDim: 0.55, goneMs: 1400, dimDelay: 650, lay: hourglass, pos: grainPos, before: glass, after: plug },
     // a burning fuse with sparks
     { name: 'fuse', shape: 'circle', live: true, endArt: 'bang', goneScale: 0.4, lay: fuse, step: fuseStep, before: fuseLine, after: sparks },
     // a bar of chocolate, pieces break off and leave a dashed gap
@@ -642,6 +642,8 @@
     letSleep();
     cancelAlarm();
     ls.set('countdown', { end, total, label, pausedAt });
+    // a theme can first show its pause reaction at full brightness before the stage fades (dimDelay, ms)
+    $('stage').style.transitionDelay = (MODES[look.m].dimDelay || 0) + 'ms';
     $('run').classList.add('paused');
     $('pause').textContent = "I'm back";
     $('sub').textContent = (label ? label + ' · ' : '') + 'paused';
@@ -652,6 +654,7 @@
     end += Date.now() - pausedAt;
     pausedAt = 0;
     ls.set('countdown', { end, total, label });
+    $('stage').style.transitionDelay = '0ms';
     $('run').classList.remove('paused');
     $('pause').textContent = awayText();
     $('sub').textContent = subText();
@@ -946,12 +949,16 @@
     c.stroke();
   }
   // paused: a thin rod slides in from the side and blocks the neck
+  // paused: a short slider pushes in from the side and closes the neck (before the stage fades); it slides back out on resume
   function plug(X) {
-    const e = 1 - X.calm, k = e * e * (3 - 2 * e);
+    const e = pausedAt ? clamp((Date.now() - pausedAt) / 450) : 1 - X.calm, k = e * e * (3 - 2 * e);
     if (k <= 0) return;
-    const { c, P } = X, G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), x = lerp(W + 4, G.cx - nk * 2.5, k);
-    c.strokeStyle = P.text; c.lineWidth = 2.5; c.lineCap = 'round';
-    c.beginPath(); c.moveTo(x, G.cy); c.lineTo(W + 4, G.cy); c.stroke();
+    if (k < 1) X.more = true;
+    const { c, P } = X, G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), len = nk * 5, x = lerp(G.cx + nk * 3, G.cx - nk * 1.6, k);
+    c.globalAlpha = Math.min(1, k * 3);
+    c.strokeStyle = P.text; c.lineWidth = Math.max(2, nk * 0.5); c.lineCap = 'round';
+    c.beginPath(); c.moveTo(x, G.cy); c.lineTo(x + len, G.cy); c.stroke();
+    c.globalAlpha = 1;
   }
 
   // ---- fuse ----
