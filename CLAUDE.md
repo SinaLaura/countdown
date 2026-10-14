@@ -7,7 +7,12 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Die App ist eine PWA in `docs/`: reines HTML/JS in `docs/index.html`, kein Build. Vorschau: `cd docs && py -m http.server 8765` (Port 8000 belegt auf diesem Rechner die Go-Girls-Seite).
 - Später soll sie mit Capacitor in den App Store (siehe [README.md](README.md)). Deshalb keine externen Abhängigkeiten oder CDNs, alles bleibt lokal.
 - Ein Theme ist ein Eintrag in `MODES` in `docs/index.html`, mit Layout (`lay`) und optionalen Hooks (`pos`, `item`, `before`, `after`, `step`, `tap`, `bodyTap`, `endArt`, `noHead` …).
-- Testen: `?m=10&look=<index oder name>.<palette>`, z.B. `?m=10&look=ducks`. Mit `&passed=5` sind schon 5 Minuten vorbei (nur in der lokalen Vorschau, online und in der App wirkungslos).
+- Testen: `?m=10&look=<index oder name>.<palette>`, z.B. `?m=10&look=ducks`. Mit `&passed=5` sind schon 5 Minuten vorbei (nur in der lokalen Vorschau, online und in der App wirkungslos). `?pomo` startet einen Pomodoro, `?pomo=1` gleich mit der ersten Pause.
+
+## Pomodoro
+- Klassisch: 25 min Fokus, 5 min Pause, jede 4. Pause 15 min, endlos bis „Exit“. Der normale Countdown bleibt („Minutes“, „Time“).
+- Am Phasenende geht das letzte Item mit Endton ab, dann startet die nächste Phase sofort in einem neuen zufälligen Look (kein End-Bildschirm). Der Untertitel zeigt „focus 2/4“, „break“ oder „long break“.
+- Die Phase übersteht Neuladen; was bei geschlossener App abgelaufen ist, wird übersprungen (nach 12 h verworfen).
 
 ## Texte
 - Die App ist englisch, sehr knapp und minimalistisch.

@@ -62,6 +62,8 @@
   #minVal { width: 150px; -moz-appearance: textfield; }
   #minVal::-webkit-inner-spin-button, #minVal::-webkit-outer-spin-button { -webkit-appearance: none; }
   #timeVal { display: block; margin: 0 auto; font-size: 56px; }
+  #pomoVal { text-align: center; font-size: 56px; font-weight: 700; color: var(--fg); }
+  #pomoPane p { text-align: center; font-size: 15px; margin-top: 4px; }
   .primary {
     height: 56px; border-radius: 28px; background: var(--fg); color: var(--bg);
     font-size: 18px; font-weight: 700; transition: background-color .4s, color .4s;
@@ -103,6 +105,7 @@
       <div class="seg" role="group">
         <button type="button" data-mode="min" aria-pressed="true">Minutes</button>
         <button type="button" data-mode="time" aria-pressed="false">Time</button>
+        <button type="button" data-mode="pomo" aria-pressed="false">Pomodoro</button>
       </div>
 
       <div id="minPane" class="stepper">
@@ -112,6 +115,10 @@
       </div>
       <div id="timePane" hidden>
         <input id="timeVal" type="time" aria-label="Time">
+      </div>
+      <div id="pomoPane" hidden>
+        <div id="pomoVal">25 · 5</div>
+        <p class="muted">every 4th break 15</p>
       </div>
     </div>
     <button class="primary" type="submit">Start</button>
@@ -658,6 +665,7 @@
     document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
     $('minPane').hidden = m !== 'min';
     $('timePane').hidden = m !== 'time';
+    $('pomoPane').hidden = m !== 'pomo';
     if (m === 'time' && !timeInput.value) timeInput.value = fmt(Date.now() + minutes * 60000);
   }
   document.querySelectorAll('.seg button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
@@ -684,7 +692,9 @@
     unlockAudio();
     label = labelInput.value.trim();
     ls.set('countdown-label', label);
-    if (mode === 'time') {
+    pomo = -1;
+    if (mode === 'pomo') beginPomo(0);
+    else if (mode === 'time') {
       if (!timeInput.value) return timeInput.focus();
       begin(endFromTime(timeInput.value));
     } else {
@@ -696,7 +706,40 @@
 
   // ================= countdown =================
 
-  const subText = () => label ? label + ' · ' + fmt(end) : fmt(end);
+  const subText = () => [label, pomo >= 0 ? pomoName(pomo) : '', fmt(end)].filter(Boolean).join(' · ');
+  const saveRun = extra => ls.set('countdown', Object.assign({ end, total, label }, pomo >= 0 ? { pomo } : {}, extra));
+
+  // pomodoro (the classic way): 25 min focus, 5 min break, every 4th break 15 min, round and round until Exit
+  const POMO = { focus: 25, short: 5, long: 15, rounds: 4 };
+  let pomo = -1;   // phase while running a pomodoro (even = focus, odd = break); -1 = a plain countdown
+  const pomoLen = k => k % 2 === 0 ? POMO.focus : (k + 1) % (2 * POMO.rounds) === 0 ? POMO.long : POMO.short;
+  const pomoName = k => k % 2 === 0 ? 'focus ' + (Math.floor(k / 2) % POMO.rounds + 1) + '/' + POMO.rounds
+                                    : pomoLen(k) === POMO.long ? 'long break' : 'break';
+  function beginPomo(k, e, paused) {
+    pomo = k;
+    begin(e || Date.now() + pomoLen(k) * 60000, pomoLen(k), paused);
+  }
+  // end of a phase: the last item leaves with the sound like always, then the next phase starts in a new look
+  function nextPhase() {
+    clearInterval(timer);
+    clearTimeout(doneTimer);
+    if (!$('run').hidden && !still) {
+      for (let i = 0; i < shownMin; i++) goneAt.set(i, performance.now());
+      shownMin = 0;
+      $('count').textContent = '0 left';
+      kick();
+    }
+    beep();
+    if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+    const from = end;
+    doneTimer = setTimeout(() => {
+      doneTimer = 0;
+      look = { m: nextMode(look.m), p: nextPal(look.p) };
+      ls.set('countdown-look', look);
+      applyPalette();
+      beginPomo(pomo + 1, from + pomoLen(pomo + 1) * 60000);
+    }, still ? 0 : Math.min(3000, (MODES[look.m].goneMs || 800) + 600));
+  }
 
   function begin(e, t, paused) {
     clearTimeout(doneTimer); doneTimer = 0;
@@ -705,7 +748,7 @@
     $('run').classList.remove('paused');
     $('pause').textContent = awayText();
     total = t || Math.max(1, Math.ceil((end - Date.now()) / 60000));
-    ls.set('countdown', { end, total, label });
+    saveRun();
     shownMin = -1;
     goneAt.clear(); pulses.clear(); tints.clear();
     $('sub').textContent = subText();
@@ -748,7 +791,7 @@
     clearInterval(timer);
     letSleep();
     cancelAlarm();
-    ls.set('countdown', { end, total, label, pausedAt });
+    saveRun({ pausedAt });
     $('run').classList.add('paused');
     $('pause').textContent = "I'm back";
     $('sub').textContent = (label ? label + ' · ' : '') + 'paused';
@@ -758,7 +801,7 @@
   function resume() {
     end += Date.now() - pausedAt;
     pausedAt = 0;
-    ls.set('countdown', { end, total, label });
+    saveRun();
     $('run').classList.remove('paused');
     $('pause').textContent = awayText();
     $('sub').textContent = subText();
@@ -792,6 +835,7 @@
     ls.del('countdown');
     end = 0;
     pausedAt = 0;
+    pomo = -1;
     $('run').classList.remove('paused');
     endArt('');
     document.title = TITLE;
@@ -803,6 +847,7 @@
   // the last minute leaves like the others: its animation and the sound play first, then the end screen comes
   let doneTimer = 0;
   function finish(quiet) {
+    if (pomo >= 0) return nextPhase();
     clearInterval(timer);
     clearTimeout(doneTimer);
     letSleep();
@@ -2400,7 +2445,7 @@
     if (!LN) return;
     LN.requestPermissions()
       .then(() => LN.schedule({ notifications: [{
-        id: 1, title: (label || 'Done') + '!', body: 'Time is up.',
+        id: 1, title: (pomo < 0 ? label || 'Done' : pomo % 2 ? 'Focus' : 'Break') + '!', body: 'Time is up.',
         schedule: { at: new Date(end), allowWhileIdle: true },
       }] }))
       .catch(() => {});
@@ -2439,10 +2484,11 @@
     applyPalette();
   }
   if (saved) label = saved.label || '';
-  if (q.has('m') || q.has('bis')) {
+  if (q.has('m') || q.has('bis') || q.has('pomo')) {
     history.replaceState(null, '', location.pathname);
     label = (q.get('t') || '').trim().slice(0, 40);
-    if (q.has('bis')) begin(endFromTime(q.get('bis')));
+    if (q.has('pomo')) beginPomo(Math.max(0, Math.round(+q.get('pomo') || 0)));   // ?pomo=1 starts with the first break
+    else if (q.has('bis')) begin(endFromTime(q.get('bis')));
     else {
       setMinutes(+q.get('m'));
       // &passed=N (N minutes already gone) is a testing aid for the local preview only: localhost with a port, or a file;
@@ -2450,6 +2496,14 @@
       const dev = location.protocol === 'file:' || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && location.port !== '');
       const passed = dev ? Math.max(0, Math.min(minutes - 1, Math.round(+q.get('passed') || 0))) : 0;
       begin(Date.now() + (minutes - passed) * 60000, passed ? minutes : 0);
+    }
+  } else if (saved && saved.pomo >= 0 && (saved.pausedAt || Date.now() - saved.end < 12 * 3600000)) {
+    // a pomodoro goes on while the app is closed: skip the phases that ended meanwhile (given up after 12 h)
+    if (saved.pausedAt) beginPomo(saved.pomo, Date.now() + (saved.end - saved.pausedAt), true);
+    else {
+      let k = saved.pomo, e = saved.end;
+      while (e <= Date.now() + 1000) { k++; e += pomoLen(k) * 60000; }
+      beginPomo(k, e);
     }
   } else if (saved && saved.pausedAt) {
     begin(Date.now() + (saved.end - saved.pausedAt), saved.total, true);
