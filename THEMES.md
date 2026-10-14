@@ -30,7 +30,7 @@ Offline genommen (`off: true` in `ALL_MODES`, im Code erhalten, nicht mehr in de
 | 19 | hedgehog | Stachel fällt ab, er wird rot; Körper antippen = hüpfen/schütteln; Pause = schläft (Augen zu, atmet langsam, kleine „z“ steigen auf, Fläche bleibt hell) |
 | 20 | cinema | Gast verlässt den Saal, die Zeit läuft auf der Leinwand |
 | 21 | spider | Bein fällt ab; Kopf antippen = federt am Faden, kneift glücklich die Augen zu; Pause = zieht die Beine ein |
-| 22 | cars | Spielzeugauto fährt aus dem Bild (Antippen = kurz Gas geben, Pause = einparken) |
+| 22 | cars | Spielzeugauto fährt aus dem Bild (Antippen = kurz Gas geben mit Auspuffwölkchen statt Ring, Pause = einparken) |
 | 23 | ducks | Ein zufälliges Küken verliert langsam den Anschluss und paddelt auf Umwegen davon, die anderen schließen auf; Mama antippen = sie dreht sich um und quakt; Pause = Reihe stoppt, Mama schaut zurück |
 | 24 | thermometer | Oberstes Segment kühlt ab und verblasst, die Säule zeigt die vergangene Zeit (kein Frost am Glas, so gewünscht); es schneit immer stärker; Temperatur („12°“) ersetzt die Überschrift; Kugel antippen = Säule flackert auf; Pause = Strickmütze; Ende = zerspringt in Eissplitter |
 | 25 | marbles | Kugelbahn: Die Kugeln warten oben hinter einer Klappe auf den Rampen; pro Minute kippt die Klappe, eine Kugel rollt die Zickzack-Bahn hinunter (fällt von Rampe zu Rampe, dreht sich sichtbar) in die Schale unten und bleibt dort blass liegen, die Warteschlange rückt nach; Antippen = Kugel hüpft kurz |

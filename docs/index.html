@@ -198,8 +198,8 @@
     // people in a cinema, one leaves per minute; the countdown runs on the screen instead of the headline
     { name: 'cinema', live: true, noHead: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: cinema, pos: leave, item: person, before: cinemaScreen },
     { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody, bodyTap: spiderTap },
-    // toy cars pottering around, tapping one makes it zoom off a bit, a passed minute drives off screen
-    { name: 'cars', live: true, hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 3000, lay: cars, step: carStep, pos: carPos, item: car, halo: (X, p, q) => ({ rx: X.d * 0.56, ry: X.d * 0.34, rot: q ? q.r : p.a, rect: true }), tap: carTap },
+    // toy cars pottering around, tapping one makes it zoom off a bit with a puff from the exhaust (no ring), a passed minute drives off screen
+    { name: 'cars', live: true, hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 3000, lay: cars, step: carStep, pos: carPos, item: car, noRing: true, after: carPuffs, tap: carTap },
     // ducklings swim in line behind their mother, the last one loses track each minute; tap the mother and she looks back
     { name: 'ducks', live: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: ducks, step: duckStep, pos: duckPos, item: duckling, halo: (X, p, q) => ({ rx: X.d * 0.62, ry: X.d * 0.4, rot: q ? q.r || 0 : 0 }),
       tap: () => peep(), after: motherDuck, bodyTap: duckTap },
@@ -1525,6 +1525,29 @@
     const p = G.pts[i];
     p.boost = G.d * 7;
     p.turn += (Math.random() - 0.5) * 2;
+    // the puff starts at the exhaust and stays where it was blown out while the car zooms off
+    const L = G.d * 0.55;
+    (G.puffs = G.puffs || []).push({ x: p.x - Math.cos(p.a) * L, y: p.y - Math.sin(p.a) * L, a: p.a + Math.PI, t0: performance.now(), s: Math.random() < 0.5 ? 1 : -1 });
+  }
+  // little exhaust clouds: three puffs one after another, drifting back, growing and fading
+  function carPuffs(X) {
+    const G = X.geo, c = X.c, d = X.d;
+    if (!G.puffs || !G.puffs.length) return;
+    if (X.still) { G.puffs.length = 0; return; }
+    G.puffs = G.puffs.filter(f => X.now - f.t0 < 1400);
+    c.fillStyle = mix(X.P.dim, X.P.text, 0.35);
+    for (const f of G.puffs) {
+      for (let k = 0; k < 3; k++) {
+        const t = clamp((X.now - f.t0 - k * 150) / 1000);
+        if (t <= 0 || t >= 1) continue;
+        const e = easeOut(t), side = f.s * (k - 1) * 0.4, dist = d * (0.05 + 0.4 * e) * (1 + 0.25 * k);
+        const x = f.x + Math.cos(f.a + side) * dist, y = f.y + Math.sin(f.a + side) * dist;
+        c.globalAlpha = 0.85 * (1 - t * t);
+        c.beginPath(); c.arc(x, y, d * (0.08 + 0.16 * e) * (1 - 0.12 * k), 0, TAU); c.fill();
+      }
+    }
+    c.globalAlpha = 1;
+    if (G.puffs.length) X.more = true;
   }
   // a toy car seen from above: wheels, body, windows around the roof, headlights
   function car(X, i, x, y, k, q, p, col) {
@@ -1972,7 +1995,7 @@
       c.globalAlpha = q && q.a !== undefined ? q.a : 1;
       if (M.item) M.item(X, i, p.cx, p.cy, sc, q, p, fill); else shape(M.shape, p, p.cx, p.cy, d * sc, g);
       c.globalAlpha = 1;
-      if (pk) {
+      if (pk && !M.noRing) {
         c.globalAlpha = 1 - pt01; c.strokeStyle = P.fg; c.lineWidth = 2;
         // the ring stays in proportion to the item (p.ring if a theme sets one, else from its tap radius / size)
         const hz = M.halo && M.halo(X, p, p.q), s = 1 + 0.6 * pt01;
