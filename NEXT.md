@@ -6,6 +6,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
+- [ ] I like the new physics of the hourglass, but make the bubbles circles.
 
 ## In progress
 
