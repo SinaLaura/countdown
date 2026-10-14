@@ -13,10 +13,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] Die Raupe soll kurz einen lächelnden Mund bekommen, wenn man sie anklickt, dann geht es wieder weg (session 406605b7, started 12:55)
 
 ## Done
 
+- [x] Die Raupe soll kurz einen lächelnden Mund bekommen, wenn man sie anklickt, dann geht es wieder weg (9146ad2)
 - [x] The slider in the hourglass should be centered (dde30ae)
 - [x] Implement the next theme: Kugelbahn: Pro Minute rollt eine Kugel durch eine Zickzack-Bahn nach unten. (d54daf7)
 - [x] Jar (meant: hourglass): the slider should be the same color as the jar's line (91804c9)
