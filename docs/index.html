@@ -65,6 +65,7 @@
   #timeVal { display: block; margin: 0 auto; font-size: 56px; }
   /* pomodoro: one row per length, the same widget as Minutes, just smaller */
   #pomoPane { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; gap: 14px 18px; }
+  #pomoSum { grid-column: 1 / -1; text-align: center; font-size: 15px; line-height: 1.4; margin-bottom: 14px; }
   #pomoPane .lab { font-size: 15px; text-align: right; white-space: nowrap; }
   #pomoPane .lab small { display: block; font-size: 12px; opacity: .7; }
   #pomoPane .stepper { gap: 8px; }
@@ -130,6 +131,7 @@
         <input id="timeVal" type="time" aria-label="Time">
       </div>
       <div id="pomoPane" hidden>
+        <p id="pomoSum" class="muted"></p>
         <div class="lab muted">Focus</div>
         <div class="stepper">
           <button type="button" class="step" data-for="focus" data-d="-1" aria-label="less">−</button>
@@ -775,12 +777,18 @@
       POMO[k] = Math.max(1, Math.min(999, Math.round(v) || POMO[k]));
       ls.set('countdown-pomo', { focus: POMO.focus, short: POMO.short, long: POMO.long });
       el.value = POMO[k];
+      sum();
     };
     bump[k] = d => set(POMO[k] + d);
     el.onchange = el.onblur = () => set(+el.value);
     el.onfocus = () => el.select();
     set(POMO[k]);
   });
+  // the sentence above the numbers says what they add up to
+  function sum() {
+    $('pomoSum').textContent = POMO.focus + ' min focus, ' + POMO.short + ' min break, after every ' + POMO.rounds + 'th focus a ' + POMO.long + ' min break. Round and round.';
+  }
+  sum();
   let pomo = -1;   // phase while running a pomodoro (even = focus, odd = break); -1 = a plain countdown
   const pomoLen = k => k % 2 === 0 ? POMO.focus : (k + 1) % (2 * POMO.rounds) === 0 ? POMO.long : POMO.short;
   const pomoName = k => k % 2 === 0 ? 'focus ' + (Math.floor(k / 2) % POMO.rounds + 1) + '/' + POMO.rounds
