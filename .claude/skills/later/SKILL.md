@@ -1,6 +1,6 @@
 ---
-name: todo
-description: Add a task to the countdown task list in NEXT.md. Use when the user types /todo, or asks to put something on the to-do list / next steps for later.
+name: later
+description: Add a task to the countdown task list in NEXT.md. Use when the user types /later (or still /todo), or asks to put something on the to-do list / next steps for later.
 argument-hint: <what to do>   (start with "!" to put it at the top)
 ---
 

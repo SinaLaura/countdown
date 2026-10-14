@@ -51,4 +51,4 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Nach jeder fertigen Änderung sofort committen, und zwar nur die eigenen Dateien mit expliziten Pfaden, kein `git add -A`.
 - Bei Code-Änderungen den Cache-Namen in `web/sw.js` hochzählen.
 - Wird ein Theme gebaut oder eine Idee verworfen, `THEMES.md` aktualisieren.
-- [NEXT.md](NEXT.md) ist die Aufgabenliste des Users. Wer frei ist, nimmt die oberste offene Aufgabe, trägt sie mit Sitzungsnamen unter „In progress“ ein (gleich committen, damit keine zweite Sitzung sie nimmt) und verschiebt sie nach „Done“ mit dem Commit. Skills dafür: `/todo <Aufgabe>` trägt ein, `/next` arbeitet die Liste ab (Ablauf steht in `.claude/skills/`).
+- [NEXT.md](NEXT.md) ist die Aufgabenliste des Users. Wer frei ist, nimmt die oberste offene Aufgabe, trägt sie mit Sitzungsnamen unter „In progress“ ein (gleich committen, damit keine zweite Sitzung sie nimmt) und verschiebt sie nach „Done“ mit dem Commit. Skills dafür: `/later <Aufgabe>` trägt ein, `/next` arbeitet die Liste ab (Ablauf steht in `.claude/skills/`).
