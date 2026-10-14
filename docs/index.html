@@ -82,9 +82,10 @@
   /* countdown */
   #count, #sub { width: fit-content; }
   .nohead #count, .nohead #sub { display: none; }
-  /* a bit smaller and in the same airy letter spacing as the buttons below */
-  #count { font-size: clamp(26px, 7.5vw, 36px); font-weight: 600; letter-spacing: .04em; line-height: 1.1; }
+  /* bold and centred over the picture, in the same airy letter spacing as the buttons below */
+  #count { font-size: clamp(26px, 7.5vw, 36px); font-weight: 700; letter-spacing: .04em; line-height: 1.1; }
   #sub { margin-top: 4px; font-size: 15px; min-height: 1.3em; }
+  #run > #count, #run > #sub { margin-left: auto; margin-right: auto; text-align: center; }
   #stage { flex: 1; min-height: 0; position: relative; margin: 20px 0 8px; }
   #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   .foot { display: flex; flex-direction: column; align-items: center; }   /* pause above exit, always: the picture keeps its height */
