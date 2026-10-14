@@ -6,7 +6,6 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] Same for the more advanced themes: a car or duck can leave using the whole screen, the dead spider legs or spikes of the hedgehog can spread more over the bottom of the whole screen, the star-net can go through the whole screen.
 - [ ] When clicking items most themes make a circle around it, which is fine. But for shapes that are not round choose another suitable thing in shape and size that fits the shape and theme.
 - [ ] App icon: draw 3 logo suggestions based on the Ankabuti spider logo (../GoGirls-homepage/images/ankabuti-logo.jpg): (1) spider with a clock-face belly with two hands, no numbers, (2) spider hanging on its thread into a thin partly filled countdown ring, (3) round smiling spider body with tiny legs and a thin arc around it showing time left. Show the three on a localhost page (lab page) so I can pick.
 - [ ] After I picked the app icon: export it to icon-192, icon-512 and apple-touch-icon in docs/ and bump the cache name in sw.js.
@@ -14,6 +13,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
+- [ ] Same for the more advanced themes: a car or duck can leave using the whole screen, the dead spider legs or spikes of the hedgehog can spread more over the bottom of the whole screen, the star-net can go through the whole screen. (session A, started 13:20)
 
 ## Done
 
