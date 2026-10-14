@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <g id="face">
+      <circle cx="-34" cy="0" r="25" fill="#fff"/><circle cx="34" cy="0" r="25" fill="#fff"/>
+      <circle cx="-30" cy="2" r="15" fill="#23232f"/><circle cx="30" cy="2" r="15" fill="#23232f"/>
+      <circle cx="-25" cy="-4" r="6" fill="#fff"/><circle cx="35" cy="-4" r="6" fill="#fff"/>
+      <ellipse cx="-62" cy="30" rx="15" ry="10" fill="#f2a29b"/><ellipse cx="62" cy="30" rx="15" ry="10" fill="#f2a29b"/>
+      <path d="M-14 34 Q0 50 14 34" fill="none" stroke="#23232f" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <g id="legs" fill="none" stroke="#3a3a4c" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-4 -20 Q110 -120 190 -60"/>
+      <path d="M0 10 Q130 -60 204 40"/>
+      <path d="M0 40 Q120 60 188 150"/>
+      <path d="M-10 66 Q80 120 130 200"/>
+    </g>
+  </defs>
+  <rect width="512" height="512" fill="#f6f3ec"/>
+  <circle cx="256" cy="256" r="218" fill="none" stroke="#e1ddd2" stroke-width="14"/>
+  <circle cx="256" cy="256" r="218" fill="none" stroke="#3cc8d4" stroke-width="14" stroke-linecap="round"
+          stroke-dasharray="958 1370" transform="rotate(-90 256 256)"/>
+  <path d="M256 38 V210" stroke="#3a3a4c" stroke-width="8"/>
+  <g transform="translate(256 292) scale(.62)"><use href="#legs"/><use href="#legs" transform="scale(-1 1)"/></g>
+  <circle cx="256" cy="292" r="78" fill="#3a3a4c"/>
+  <g transform="translate(256 288) scale(.78)"><use href="#face"/></g>
+</svg>
