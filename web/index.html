@@ -194,7 +194,7 @@
     { name: 'hedgehog', live: true, goneScale: 0.5, goneMs: 1500, lay: hedgehog, pos: hogPos, item: spine, after: hogBody, bodyTap: hogTap },
     // people in a cinema, one leaves per minute; the countdown runs on the screen instead of the headline
     { name: 'cinema', live: true, noHead: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: cinema, pos: leave, item: person, before: cinemaScreen },
-    { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody },
+    { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody, bodyTap: spiderTap },
     // toy cars pottering around, tapping one makes it zoom off a bit, a passed minute drives off screen
     { name: 'cars', live: true, hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 3000, lay: cars, step: carStep, pos: carPos, item: car, tap: carTap },
     // ducklings swim in line behind their mother, the last one loses track each minute; tap the mother and she looks back
@@ -592,6 +592,7 @@
   const subText = () => label ? label + ' · ' + fmt(end) : fmt(end);
 
   function begin(e, t, paused) {
+    clearTimeout(doneTimer); doneTimer = 0;
     end = e;
     pausedAt = 0;
     $('run').classList.remove('paused');
@@ -661,7 +662,7 @@
     scheduleAlarm();
     kick();
   }
-  $('pause').onclick = () => pausedAt ? resume() : pause();
+  $('pause').onclick = () => { if (!doneTimer) pausedAt ? resume() : pause(); };
 
   function tick() {
     if (pausedAt) return;
@@ -678,6 +679,7 @@
 
   function stop() {
     clearInterval(timer);
+    clearTimeout(doneTimer); doneTimer = 0;
     letSleep();
     cancelAlarm();
     ls.del('countdown');
@@ -691,19 +693,30 @@
   $('exit').onclick = stop;
   $('again').onclick = stop;
 
+  // the last minute leaves like the others: its animation and the sound play first, then the end screen comes
+  let doneTimer = 0;
   function finish(quiet) {
     clearInterval(timer);
+    clearTimeout(doneTimer);
     letSleep();
     const text = (label ? label : 'Done').toUpperCase() + '!';
     $('doneText').textContent = text;
     $('doneText').classList.toggle('long', text.length > 8);
     document.title = text;
-    show('done');
-    endArt(MODES[look.m].endArt);
-    if (quiet) return;
-    if (artKind === 'bang') boom();
+    if (quiet || $('run').hidden || still) return showDone(quiet);
+    for (let i = 0; i < shownMin; i++) goneAt.set(i, performance.now());
+    shownMin = 0;
+    $('count').textContent = '0 left';
+    kick();
     beep();
     if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]);
+    doneTimer = setTimeout(() => showDone(), Math.min(3000, (MODES[look.m].goneMs || 800) + 600));
+  }
+  function showDone(quiet) {
+    doneTimer = 0;
+    show('done');
+    endArt(MODES[look.m].endArt);
+    if (!quiet && artKind === 'bang') boom();
   }
 
   // ================= drawing =================
@@ -730,7 +743,13 @@
   window.addEventListener('resize', () => { if (!$('run').hidden) relayout(); });
 
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
-  function frame(now) { raf = 0; if (!$('run').hidden && draw(now)) kick(); }
+  function frame(now) {
+    raf = 0;
+    if ($('run').hidden) return;
+    let more = true;
+    try { more = draw(now); } catch (e) { console.error(e); }   // one bad frame must not leave the screen empty
+    if (more) kick();
+  }
 
   const clamp = t => t < 0 ? 0 : t > 1 ? 1 : t;
   const easeOut = t => 1 - Math.pow(1 - t, 3);
@@ -1051,18 +1070,39 @@
   }
 
   // ---- spider ----
-  const bob = X => X.still ? 0 : Math.sin(X.t * 1000 / 700) * X.geo.spider.R * 0.03;
+  // gentle bobbing; after a tap on the head a springy bounce on the thread
+  function bob(X) {
+    const S = X.geo.spider;
+    if (X.still) return 0;
+    let y = Math.sin(X.t * 1000 / 700) * S.R * 0.03;
+    const t = S.react ? (X.now - S.react) / 1000 : 1;
+    if (t < 1) { y += Math.sin(t * Math.PI * 3) * (1 - t) * S.R * 0.18; X.more = true; } else S.react = 0;
+    return y;
+  }
+  function spiderTap(G, x, y) {
+    const S = G.spider;
+    if (Math.hypot(x - S.cx, y - S.cy) > S.rb * 1.2) return false;
+    S.react = performance.now();
+    squeak();
+    return true;
+  }
   function legPos(X, i, g, p) {
     const b = bob(X);
-    if (g <= 0) return { x: p.x, y: p.y + b, r: 0 };
+    if (g <= 0) {
+      // paused: the legs fold in towards the body (scaled around where they join it)
+      const e = 1 - X.calm, sc = 1 - 0.6 * e * e * (3 - 2 * e), S = X.geo.spider;
+      const t = S.react ? (X.now - S.react) / 1000 : 1, wig = t < 1 ? Math.sin(t * Math.PI * 6) * (1 - t) * 0.15 * (i % 2 ? 1 : -1) : 0;
+      return { x: p.x + p.bx * (1 - sc), y: p.y + p.by * (1 - sc) + b, r: wig, s: sc };
+    }
     return { x: lerp(p.x, p.lx, g), y: lerp(p.y + b, p.ly, g * g), r: p.spin * g };
   }
   function leg(X, i, x, y, k, q, p, col) {
     const c = X.c;
     c.save(); c.translate(x, y); c.rotate(q.r); c.scale(k, k);
-    c.strokeStyle = col; c.lineWidth = X.d;
+    const lw = X.d / (q.s || 1);   // folded legs keep their thickness
+    c.strokeStyle = col; c.lineWidth = lw;
     c.beginPath(); c.moveTo(p.bx, p.by); c.lineTo(0, 0); c.lineTo(p.fx, p.fy); c.stroke();
-    c.beginPath(); c.arc(p.fx, p.fy, X.d * 0.9, 0, TAU); c.fill();
+    c.beginPath(); c.arc(p.fx, p.fy, lw * 0.9, 0, TAU); c.fill();
     c.restore();
   }
   function thread(X) {
@@ -1075,11 +1115,16 @@
     if (r <= 0) return;
     c.fillStyle = mix(P.fg, P.bg, 0.12);
     c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
-    // cute face: big eyes that blink now and then, rosy cheeks, a little smile
+    // cute face: big eyes that blink now and then, rosy cheeks, a little smile; happy squint after a tap
     const open = X.still || X.now % 4200 > 160 ? 1 : 0.12;
-    c.fillStyle = P.bg;
-    for (const s of [-1, 1]) { c.beginPath(); c.ellipse(x + s * r * 0.36, y - r * 0.08, r * 0.2, r * 0.2 * open, 0, 0, TAU); c.fill(); }
-    if (open === 1) {
+    if (S.react) {
+      c.strokeStyle = P.bg; c.lineWidth = r * 0.07;
+      for (const s of [-1, 1]) { c.beginPath(); c.arc(x + s * r * 0.36, y - r * 0.02, r * 0.14, Math.PI * 1.15, Math.PI * 1.85); c.stroke(); }
+    } else {
+      c.fillStyle = P.bg;
+      for (const s of [-1, 1]) { c.beginPath(); c.ellipse(x + s * r * 0.36, y - r * 0.08, r * 0.2, r * 0.2 * open, 0, 0, TAU); c.fill(); }
+    }
+    if (open === 1 && !S.react) {
       c.fillStyle = mix(P.fg, '#ffffff', 0.7);
       for (const s of [-1, 1]) { c.beginPath(); c.arc(x + s * r * 0.36 + r * 0.06, y - r * 0.15, r * 0.07, 0, TAU); c.fill(); }
     }
@@ -1203,7 +1248,7 @@
     if (D.look && !X.still) {
       const t = (X.now - D.look) / 1800;
       if (t >= 1) D.look = null;
-      else e = t < 0.25 ? t / 0.25 : t > 0.75 ? (1 - t) / 0.25 : 1;
+      else { e = t < 0.25 ? t / 0.25 : t > 0.75 ? (1 - t) / 0.25 : 1; X.more = true; }
     }
     return Math.max(e * e * (3 - 2 * e), p * p * (3 - 2 * p));
   }
@@ -1316,6 +1361,7 @@
     if (!r || X.still) return none;
     const t = (X.now - r.t0) / 700;
     if (t >= 1) { Hg.react = null; return none; }
+    X.more = true;
     const s = Math.sin(Math.PI * t);
     if (r.kind === 0) return { on: true, dx: 0, dy: -s * Hg.R * 0.35, rot: 0, sp: 1 + 0.4 * s, lift: s };
     const w = Math.sin(t * TAU * 3) * (1 - t);
@@ -1522,6 +1568,7 @@
       }
     }
     if (M.after) M.after(X);
+    if (X.more) busy = true;
 
     if (M.eyes && shownMin > 0 && d > 12) {
       const p = pts[0], e = d * 0.09 * intro(0);
