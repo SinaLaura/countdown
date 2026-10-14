@@ -19,6 +19,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 ## Aussehen und Tippen
 - Es gibt keine Design-Einstellungen. Das Aussehen ändert sich nur durch Tippen.
 - Pro Minute gibt es ein Item.
+- Die Menge, die man sieht, ist proportional zur Zeit: Die Items füllen zusammen ihren Bereich (z.B. die ganze obere Hälfte der Sanduhr), und ihre Größe richtet sich danach.
 - **Tipp auf ein aktives Item:** kurze Reaktion (Puls, manchmal eine leicht andere Farbe nahe der Palettenfarbe, ggf. themespezifisch). Sonst passiert nichts.
 - Der Puls-Ring beim Antippen bleibt proportional zum Item: Er liegt eng um das, was man sieht, und ist nie viel größer (bei ungewöhnlichen Formen `p.ring` setzen).
 - **Tipp auf ein vergangenes Item:** nichts.
