@@ -6,7 +6,6 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] In the browser when I don't click in the centered void the theme doesn't change. Change that. (priority task)
 - [ ] Hourglass: make the bubbles bigger. It looks a little bit weird how they are stuck before free fall but just in the air, in the bottleneck, without actual physical limitation.
 - [ ] Hourglass: make the bigness of the circles proportional. The total size of them could/should fill up the whole half of the hourglass, to be proportionate to time, which it always (in general) should be.
 - [ ] Remove some of the boring themes (don't delete, we will re-use them maybe later, but take them offline).
@@ -17,6 +16,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## Done
 
+- [x] In the browser when I don't click in the centered void the theme doesn't change. Change that. (priority task) (20967f8) → http://localhost:8765/?m=10 (in a wide window, tap the empty space left or right of the column)
 - [x] Fullscreen should start only after someone presses Start. (6c49cc7) → http://localhost:8765/ (first tap does nothing, Start goes fullscreen)
 - [x] I like the new physics of the hourglass, but make the bubbles circles. (c745ece) → lab/hourglass-matter.html (open the file directly)
 - [x] Make my app fullscreen by default (854294d) → http://localhost:8765/ (first tap or Start goes fullscreen)
