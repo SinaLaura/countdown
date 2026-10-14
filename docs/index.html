@@ -175,7 +175,7 @@
   const ALL_MODES = [
     { name: 'dots',     off: true, shape: 'circle',  lay: (n, w, h) => grid(n, w, h, 1.6, 1.6) },
     { name: 'squares',  off: true, shape: 'square',  lay: (n, w, h) => grid(n, w, h, 1.5, 1.5) },
-    { name: 'snake',    shape: 'circle',  body: 0.42, eyes: 'turn', lay: (n, w, h) => grid(n, w, h, 1.45, 1.45, { snake: true, pad: 1.5 }), after: snakeFace, tap: snakeTap },
+    { name: 'snake',    shape: 'circle',  body: 0.42, eyes: true, glance: snakeGlance, lay: (n, w, h) => grid(n, w, h, 1.45, 1.45, { snake: true, pad: 1.5 }), after: snakeFace, tap: snakeTap },
     { name: 'spiral',   shape: 'circle',  guide: 'path', lay: spiral },
     { name: 'clock',    shape: 'circle',  guide: 'ring', lay: ring },
     { name: 'bars',     off: true, shape: 'bar',     lay: (n, w, h) => grid(n, w, h, 1.8, 3.6, { max: 65 }) },
@@ -1250,13 +1250,25 @@
     const p = pts[0], q = pts[1] || { cx: p.cx, cy: p.cy - 1 };
     return Math.atan2(p.cy - q.cy, p.cx - q.cx) - Math.PI / 2;
   }
-  // all three are drawn in the head's own turn, so mouth, tear and tongue sit at the front like the eyes
-  function snakeFace(X) {
+  // 0..1 while the head reacts to a tap (fades in, holds, fades out), else 0
+  function snakeReact(X) {
     const G = X.geo, t = G.react ? (X.now - G.react) / 1400 : 1;
-    if (t < 0 || t >= 1 || X.min <= 0 || X.d <= 12) return;
+    if (t < 0 || t >= 1 || X.min <= 0) return { t, a: 0 };
+    return { t, a: t < 0.12 ? t / 0.12 : t > 0.75 ? (1 - t) / 0.25 : 1 };
+  }
+  // while reacting the eyes glance the way the head is going
+  function snakeGlance(X) {
+    const { a } = snakeReact(X);
+    if (!a) return null;
+    const p = X.pts[0], q = X.pts[1] || { cx: p.cx, cy: p.cy - 1 }, L = Math.hypot(p.cx - q.cx, p.cy - q.cy) || 1;
+    return { ux: (p.cx - q.cx) / L, uy: (p.cy - q.cy) / L, a };
+  }
+  // smile and tears face us like the eyes; the tongue comes out of the front, the way the head is going
+  function snakeFace(X) {
+    const { t, a } = snakeReact(X);
+    if (!a || X.d <= 12) return;
     const { c, P, d } = X, p = X.pts[0];
-    const a = t < 0.12 ? t / 0.12 : t > 0.75 ? (1 - t) / 0.25 : 1;
-    c.save(); c.translate(p.cx, p.cy); c.rotate(headTurn(X.pts));
+    c.save(); c.translate(p.cx, p.cy); if (snakeKind === 2) c.rotate(headTurn(X.pts));
     c.lineCap = 'round'; c.globalAlpha = a;
     if (snakeKind === 0) {
       c.strokeStyle = P.bg; c.lineWidth = Math.max(1.5, d * 0.055);
@@ -2085,12 +2097,16 @@
     if (X.more) busy = true;
 
     if (M.eyes && shownMin > 0 && d > 12) {
-      // eyes: 'turn' = the face looks the way the head is going (like the snake's tongue), otherwise straight at us
-      const p = pts[0], e = d * 0.09 * intro(0);
-      c.save(); c.translate(p.cx, p.cy); if (M.eyes === 'turn') c.rotate(headTurn(pts));
+      // the eyes look straight at us; a theme can make them glance somewhere for a moment (M.glance: direction ux, uy and amount a)
+      // glancing sideways, the far eye moves more than the near one, as if the head turned
+      const p = pts[0], e = d * 0.09 * intro(0), gl = M.glance && M.glance(X);
+      const eye = s => {
+        const k = gl ? gl.a : 0, far = gl && s * gl.ux < 0 ? 0.13 : 0.04;
+        return [p.cx + s * d * 0.16 + (gl ? gl.ux * k * d * far : 0), p.cy - d * 0.06 + (gl ? gl.uy * k * d * 0.08 : 0)];
+      };
+      const [lx, ly] = eye(-1), [rx, ry] = eye(1);
       c.fillStyle = P.bg;
-      c.beginPath(); c.arc(-d * 0.16, -d * 0.06, e, 0, Math.PI * 2); c.arc(d * 0.16, -d * 0.06, e, 0, Math.PI * 2); c.fill();
-      c.restore();
+      c.beginPath(); c.arc(lx, ly, e, 0, Math.PI * 2); c.arc(rx, ry, e, 0, Math.PI * 2); c.fill();
     }
     return busy;
   }
