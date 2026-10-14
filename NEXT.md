@@ -12,11 +12,11 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 - [ ] What is the classical pomodoro technique? Choose that (for the pomodoro task above).
 
 ## In progress
-- [ ] For the car, clicking should not make a surrounding thing, but some puff from the exhaust (Auspuff). (session opus, started 14:30)
 
 
 ## Done
 
+- [x] For the car, clicking should not make a surrounding thing, but some puff from the exhaust (Auspuff). (433f8ca) → http://localhost:8765/?m=10&look=cars (tap a car)
 - [x] From the removed boring themes re-introduce the 5 best of them. And tell me how many are thrown out now. (11b2b8b) → http://localhost:8765/?m=20&look=spiral (back: spiral, clock, honey, rings, diamonds; 4 thrown out: dots, squares, bars, tiles)
 
 - [x] App icon: draw 3 logo suggestions based on the Ankabuti spider logo (../GoGirls-homepage/images/ankabuti-logo.jpg): (1) spider with a clock-face belly with two hands, no numbers, (2) spider hanging on its thread into a thin partly filled countdown ring, (3) round smiling spider body with tiny legs and a thin arc around it showing time left. Show the three on a localhost page (lab page) so I can pick. (4c9126d) → lab/icons.html (open the file directly)
