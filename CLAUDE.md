@@ -4,9 +4,9 @@ Generelle Regeln für diese App. Gelten immer, wenn der User nichts Genaueres sa
 Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen in [THEMES.md](THEMES.md).
 
 ## Projekt
-- Die App ist eine PWA in `web/`: reines HTML/JS in `web/index.html`, kein Build. Vorschau: `cd web && py -m http.server 8765` (Port 8000 belegt auf diesem Rechner die Go-Girls-Seite).
+- Die App ist eine PWA in `docs/`: reines HTML/JS in `docs/index.html`, kein Build. Vorschau: `cd docs && py -m http.server 8765` (Port 8000 belegt auf diesem Rechner die Go-Girls-Seite).
 - Später soll sie mit Capacitor in den App Store (siehe [README.md](README.md)). Deshalb keine externen Abhängigkeiten oder CDNs, alles bleibt lokal.
-- Ein Theme ist ein Eintrag in `MODES` in `web/index.html`, mit Layout (`lay`) und optionalen Hooks (`pos`, `item`, `before`, `after`, `step`, `tap`, `bodyTap`, `endArt`, `noHead` …).
+- Ein Theme ist ein Eintrag in `MODES` in `docs/index.html`, mit Layout (`lay`) und optionalen Hooks (`pos`, `item`, `before`, `after`, `step`, `tap`, `bodyTap`, `endArt`, `noHead` …).
 - Testen: `?m=10&look=<index oder name>.<palette>`, z.B. `?m=10&look=ducks`. Mit `&passed=5` sind schon 5 Minuten vorbei (nur in der lokalen Vorschau, online und in der App wirkungslos).
 - Die alten Dateien `Countdown.cs`/`.exe`, `build.cmd` und `countdown.ps1` stammen aus der ersten Windows-Version und werden nicht mehr gepflegt.
 
@@ -48,8 +48,8 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Bei `prefers-reduced-motion` gibt es keine Dauer-Animationen (`still`).
 
 ## Zusammenarbeit (mehrere Claude-Sitzungen arbeiten parallel)
-- `web/index.html` direkt vor dem Bearbeiten frisch lesen und nie aus einem alten Stand komplett neu schreiben.
+- `docs/index.html` direkt vor dem Bearbeiten frisch lesen und nie aus einem alten Stand komplett neu schreiben.
 - Nach jeder fertigen Änderung sofort committen, und zwar nur die eigenen Dateien mit expliziten Pfaden, kein `git add -A`.
-- Bei Code-Änderungen den Cache-Namen in `web/sw.js` hochzählen.
+- Bei Code-Änderungen den Cache-Namen in `docs/sw.js` hochzählen.
 - Wird ein Theme gebaut oder eine Idee verworfen, `THEMES.md` aktualisieren.
 - [NEXT.md](NEXT.md) ist die Aufgabenliste des Users. Wer frei ist, nimmt die oberste offene Aufgabe, trägt sie mit Sitzungsnamen unter „In progress“ ein (gleich committen, damit keine zweite Sitzung sie nimmt) und verschiebt sie nach „Done“ mit dem Commit und einem localhost-Link zum Nachschauen (z.B. `http://localhost:8765/?m=10&look=jar`). Skills dafür: `/later <Aufgabe>` trägt ein, `/next` arbeitet die Liste ab (Ablauf steht in `.claude/skills/`).

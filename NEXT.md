@@ -2,7 +2,7 @@
 
 Write what you want next under **To do**, one line each, top = most important (or use `/later <task>`, `/later !<task>` for urgent).
 Start working through the list with `/next`, or keep it running with `/loop 15m /next`.
-Claude picks up the top open item whenever it is free, moves it to **In progress** (with its session name, so parallel sessions don't take the same one), and to **Done** with the commit and a localhost link to check it when finished (needs `cd web && py -m http.server 8765`).
+Claude picks up the top open item whenever it is free, moves it to **In progress** (with its session name, so parallel sessions don't take the same one), and to **Done** with the commit and a localhost link to check it when finished (needs `cd docs && py -m http.server 8765`).
 
 ## To do
 
