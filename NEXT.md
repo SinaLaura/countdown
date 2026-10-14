@@ -6,6 +6,8 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
+- [ ] Disable zoom in.
+- [ ] Enable changing the time of the pomodoro.
 
 ## In progress
 
