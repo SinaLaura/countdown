@@ -179,7 +179,7 @@
       lay: jar, step: jarStep, pos: ballPos, item: jarBall, tap: jarTap, before: drawJar },
     // crawling caterpillar, turns into a butterfly at the end
     { name: 'caterpillar', shape: 'circle', live: true, body: 0.8, eyes: true, stripes: true, endArt: 'butterfly',
-      lay: (n, w, h) => grid(n, w, h, 0.78, 1.6, { snake: true, max: 40 }), pos: crawl, after: antennae },
+      lay: (n, w, h) => grid(n, w, h, 0.78, 1.6, { snake: true, max: 40 }), pos: crawl, after: antennae, tap: smile },
     // sand runs from the top bulb into the bottom one
     { name: 'hourglass', shape: 'circle', goneScale: 1, goneDim: 0.55, goneMs: 1600, noDim: true, lay: hourglass, pos: grainPos, item: grain, before: glass, after: plug },
     // a burning fuse with sparks
@@ -1140,7 +1140,17 @@
       c.beginPath(); c.moveTo(p.cx + s * d * 0.16, p.cy - d * 0.4); c.quadraticCurveTo(p.cx + s * d * 0.2, ey, ex, ey); c.stroke();
       c.beginPath(); c.arc(ex, ey, d * 0.08 * k, 0, TAU); c.fill();
     }
+    // tapped: a short smile under the eyes, then it goes away again
+    const t = X.geo.smile ? (X.now - X.geo.smile) / 1400 : 1;
+    if (t >= 0 && t < 1 && d > 12) {
+      const a = t < 0.15 ? t / 0.15 : t > 0.75 ? (1 - t) / 0.25 : 1;
+      c.strokeStyle = P.bg; c.lineWidth = Math.max(1.5, d * 0.055); c.globalAlpha = a;
+      c.beginPath(); c.arc(p.cx, p.cy + d * 0.02, d * 0.15 * (0.6 + 0.4 * a), Math.PI * 0.18, Math.PI * 0.82); c.stroke();
+      c.globalAlpha = 1;
+      X.more = true;
+    }
   }
+  function smile(G) { G.smile = performance.now(); }
 
   // ---- hourglass ----
   // a grain sinks to the neck, drops through it with gravity, lands on the pile and rolls into its place
