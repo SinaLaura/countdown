@@ -82,7 +82,8 @@
   /* countdown */
   #count, #sub { width: fit-content; }
   .nohead #count, .nohead #sub { display: none; }
-  #count { font-size: clamp(34px, 10vw, 48px); font-weight: 700; line-height: 1.1; }
+  /* a bit smaller and in the same airy letter spacing as the buttons below */
+  #count { font-size: clamp(26px, 7.5vw, 36px); font-weight: 600; letter-spacing: .04em; line-height: 1.1; }
   #sub { margin-top: 4px; font-size: 15px; min-height: 1.3em; }
   #stage { flex: 1; min-height: 0; position: relative; margin: 20px 0 8px; }
   #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -728,9 +729,11 @@
     label = labelInput.value.trim();
     ls.set('countdown-label', label);
     pomo = -1;
+    byTime = false;
     if (mode === 'pomo') beginPomo(0);
     else if (mode === 'time') {
       if (!timeInput.value) return timeInput.focus();
+      byTime = true;
       begin(endFromTime(timeInput.value));
     } else {
       setMinutes(+minInput.value);
@@ -741,8 +744,10 @@
 
   // ================= countdown =================
 
-  const subText = () => [label, pomo >= 0 ? pomoName(pomo) : '', fmt(end)].filter(Boolean).join(' · ');
-  const saveRun = extra => ls.set('countdown', Object.assign({ end, total, label }, pomo >= 0 ? { pomo } : {}, extra));
+  // the end time only shows for "Minutes": with "Time" you chose it yourself, a pomodoro just goes round
+  let byTime = false;
+  const subText = () => [label, pomo >= 0 ? pomoName(pomo) : '', pomo < 0 && !byTime ? fmt(end) : ''].filter(Boolean).join(' · ');
+  const saveRun = extra => ls.set('countdown', Object.assign({ end, total, label }, pomo >= 0 ? { pomo } : {}, byTime ? { byTime } : {}, extra));
 
   // pomodoro (the classic way): 25 min focus, 5 min break, every 4th break 15 min, round and round until Exit
   // the minutes can be changed on the start screen (kept for next time)
@@ -896,6 +901,7 @@
     end = 0;
     pausedAt = 0;
     pomo = -1;
+    byTime = false;
     $('run').classList.remove('paused');
     endArt('');
     document.title = TITLE;
@@ -2569,12 +2575,12 @@
     ls.set('countdown-look', look);
     applyPalette();
   }
-  if (saved) label = saved.label || '';
+  if (saved) { label = saved.label || ''; byTime = !!saved.byTime; }
   if (q.has('m') || q.has('bis') || q.has('pomo')) {
     history.replaceState(null, '', location.pathname);
-    label = (q.get('t') || '').trim().slice(0, 40);
+    label = (q.get('t') || '').trim().slice(0, 40); byTime = false;
     if (q.has('pomo')) beginPomo(Math.max(0, Math.round(+q.get('pomo') || 0)));   // ?pomo=1 starts with the first break
-    else if (q.has('bis')) begin(endFromTime(q.get('bis')));
+    else if (q.has('bis')) { byTime = true; begin(endFromTime(q.get('bis'))); }
     else {
       setMinutes(+q.get('m'));
       // &passed=N (N minutes already gone) is a testing aid for the local preview only: localhost with a port, or a file;
