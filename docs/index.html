@@ -63,16 +63,14 @@
   #minVal { width: 150px; -moz-appearance: textfield; }
   #minVal::-webkit-inner-spin-button, #minVal::-webkit-outer-spin-button { -webkit-appearance: none; }
   #timeVal { display: block; margin: 0 auto; font-size: 56px; }
-  #pomoVal { text-align: center; font-size: 56px; font-weight: 700; color: var(--fg); }
-  #pomoPane p { text-align: center; font-size: 15px; margin-top: 4px; }
-  /* the pomodoro minutes are edited in place: tap a number and type */
-  .pnum {
-    font-weight: inherit; text-align: center; padding: 0; -moz-appearance: textfield;
-    border-bottom: 1px dashed var(--dim); transition: border-color .3s;
-  }
-  .pnum:focus { border-bottom: 1px solid var(--fg); }
+  /* pomodoro: one row per length, the same widget as Minutes, just smaller */
+  #pomoPane { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; gap: 14px 18px; }
+  #pomoPane .lab { font-size: 15px; text-align: right; white-space: nowrap; }
+  #pomoPane .lab small { display: block; font-size: 12px; opacity: .7; }
+  #pomoPane .stepper { gap: 8px; }
+  #pomoPane .step { width: 44px; height: 44px; font-size: 22px; }
+  .pnum { width: 84px; text-align: center; font-size: 40px; font-weight: 700; color: var(--fg); -moz-appearance: textfield; }
   .pnum::-webkit-inner-spin-button, .pnum::-webkit-outer-spin-button { -webkit-appearance: none; }
-  #pomoPane p .pnum { font-size: 16px; }   /* 16px: iOS would zoom into anything smaller */
   .primary {
     height: 56px; border-radius: 28px; background: var(--fg); color: var(--bg);
     font-size: 18px; font-weight: 700; transition: background-color .4s, color .4s;
@@ -132,9 +130,24 @@
         <input id="timeVal" type="time" aria-label="Time">
       </div>
       <div id="pomoPane" hidden>
-        <div id="pomoVal"><input id="pomoFocus" class="pnum" type="number" inputmode="numeric" min="1" max="999" aria-label="Focus minutes"> · <input id="pomoShort" class="pnum" type="number" inputmode="numeric" min="1" max="999" aria-label="Break minutes"></div>
-        <p class="muted">min focus · min break</p>
-        <p class="muted"><input id="pomoLong" class="pnum" type="number" inputmode="numeric" min="1" max="999" aria-label="Long break minutes"> min break after 4 rounds</p>
+        <div class="lab muted">Focus</div>
+        <div class="stepper">
+          <button type="button" class="step" data-for="focus" data-d="-1" aria-label="less">−</button>
+          <input id="pomoFocus" class="pnum" type="number" inputmode="numeric" min="1" max="999" aria-label="Focus minutes">
+          <button type="button" class="step" data-for="focus" data-d="1" aria-label="more">+</button>
+        </div>
+        <div class="lab muted">Break</div>
+        <div class="stepper">
+          <button type="button" class="step" data-for="short" data-d="-1" aria-label="less">−</button>
+          <input id="pomoShort" class="pnum" type="number" inputmode="numeric" min="1" max="999" aria-label="Break minutes">
+          <button type="button" class="step" data-for="short" data-d="1" aria-label="more">+</button>
+        </div>
+        <div class="lab muted">Long break<small>every 4th</small></div>
+        <div class="stepper">
+          <button type="button" class="step" data-for="long" data-d="-1" aria-label="less">−</button>
+          <input id="pomoLong" class="pnum" type="number" inputmode="numeric" min="1" max="999" aria-label="Long break minutes">
+          <button type="button" class="step" data-for="long" data-d="1" aria-label="more">+</button>
+        </div>
       </div>
     </div>
     <button class="primary" type="submit">Start</button>
@@ -687,10 +700,11 @@
   setMinutes(minutes);
   minInput.onchange = () => setMinutes(+minInput.value);
 
-  // +/- : tap for one, hold to run
+  // +/- : tap for one, hold to run (data-for says which number: the minutes or one of the pomodoro lengths)
+  const bump = { min: d => setMinutes(minutes + d) };
   document.querySelectorAll('.step').forEach(b => {
     let t1 = 0, t2 = 0;
-    const go = () => setMinutes(minutes + +b.dataset.d);
+    const go = () => bump[b.dataset.for || 'min'](+b.dataset.d);
     const stopHold = () => { clearTimeout(t1); clearInterval(t2); };
     b.addEventListener('pointerdown', e => { e.preventDefault(); go(); t1 = setTimeout(() => t2 = setInterval(go, 70), 400); });
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stopHold));
@@ -757,15 +771,15 @@
   const POMO = Object.assign({ focus: 25, short: 5, long: 15 }, ls.get('countdown-pomo'), { rounds: 4 });
   ['focus', 'short', 'long'].forEach(k => {
     const el = $('pomo' + k[0].toUpperCase() + k.slice(1));
-    const show = () => { el.value = POMO[k]; el.style.width = String(POMO[k]).length + .4 + 'ch'; };
-    el.oninput = () => el.style.width = Math.max(1, el.value.length) + .4 + 'ch';
-    el.onchange = el.onblur = () => {
-      POMO[k] = Math.max(1, Math.min(999, Math.round(+el.value) || POMO[k]));
+    const set = v => {
+      POMO[k] = Math.max(1, Math.min(999, Math.round(v) || POMO[k]));
       ls.set('countdown-pomo', { focus: POMO.focus, short: POMO.short, long: POMO.long });
-      show();
+      el.value = POMO[k];
     };
+    bump[k] = d => set(POMO[k] + d);
+    el.onchange = el.onblur = () => set(+el.value);
     el.onfocus = () => el.select();
-    show();
+    set(POMO[k]);
   });
   let pomo = -1;   // phase while running a pomodoro (even = focus, odd = break); -1 = a plain countdown
   const pomoLen = k => k % 2 === 0 ? POMO.focus : (k + 1) % (2 * POMO.rounds) === 0 ? POMO.long : POMO.short;
