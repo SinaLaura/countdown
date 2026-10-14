@@ -661,7 +661,7 @@
     return d.getTime();
   }
 
-  // fullscreen by default; a browser only allows it after a tap, so the first tap and every Start ask for it
+  // fullscreen starts only when someone presses Start (a browser only allows it after a tap)
   // (the installed app is fullscreen anyway through the manifest)
   function goFull() {
     const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
@@ -669,7 +669,6 @@
     if (window.matchMedia && matchMedia('(display-mode: fullscreen)').matches) return;
     try { const p = req.call(el, { navigationUI: 'hide' }); if (p && p.catch) p.catch(() => {}); } catch (e) {}
   }
-  document.addEventListener('pointerdown', goFull, { once: true });
 
   $('setup').onsubmit = e => {
     e.preventDefault();
