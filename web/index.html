@@ -574,20 +574,19 @@
 
   // the pause button says something different every day
   const AWAY = [
-    "I'm going to stare into the fridge",
-    "Laundry won't fold itself. Sadly.",
-    "Quick existential crisis, brb",
-    "Emotional support snack run",
-    "The cat has summoned me",
-    "Checking if the oven is still off",
-    "Back in 5. Famous last words.",
-    "Watering the plants I keep forgetting",
-    "Taking out the trash (literally)",
-    "Hydrating, as a personality trait",
-    "Looking for my phone. It's in my hand.",
-    "Doing the dishes I promised to do yesterday",
-    "Fresh air? Heard it's nice",
-    "Pretending to be productive elsewhere",
+    "I'm going to the kitchen",
+    "I'll be back in 5",
+    "Just let me check the fridge real quick",
+    "Just let me grab a coffee",
+    "I'm gonna stretch my legs for a sec",
+    "Just let me water the plants real quick",
+    "I'm gonna grab a snack, brb",
+    "Just let me take this call real quick",
+    "I'm gonna get some fresh air",
+    "Hold on, the laundry's calling",
+    "Just a sec, gotta feed the cat",
+    "I'm gonna make some tea, back in a bit",
+    "Just let me take out the trash real quick",
   ];
   function awayText() {
     const day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
