@@ -6,7 +6,6 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] In general the items should be proportional and fill up the space. That is almost always not the case with the basic boring themes. Add that general instruction to CLAUDE.md and change it for the boring themes: use the full size of the browser (not necessarily filling it completely, but use it).
 - [ ] Same for the more advanced themes: a car or duck can leave using the whole screen, the dead spider legs or spikes of the hedgehog can spread more over the bottom of the whole screen, the star-net can go through the whole screen.
 - [ ] When clicking items most themes make a circle around it, which is fine. But for shapes that are not round choose another suitable thing in shape and size that fits the shape and theme.
 - [ ] App icon: draw 3 logo suggestions based on the Ankabuti spider logo (../GoGirls-homepage/images/ankabuti-logo.jpg): (1) spider with a clock-face belly with two hands, no numbers, (2) spider hanging on its thread into a thin partly filled countdown ring, (3) round smiling spider body with tiny legs and a thin arc around it showing time left. Show the three on a localhost page (lab page) so I can pick.
@@ -15,10 +14,11 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] The caterpillar already gets a laughing mouth when clicked. A similar theme (maybe snake or so) should also react when clicked: smile, look sad, or pull in its feelers. The reaction is chosen randomly each time the theme appears, but stays the same for that whole run (every click in one iteration gives the same reaction). (session A, started 12:35)
+- [ ] In general the items should be proportional and fill up the space. That is almost always not the case with the basic boring themes. Add that general instruction to CLAUDE.md and change it for the boring themes: use the full size of the browser (not necessarily filling it completely, but use it). (session A, started 13:00)
 
 ## Done
 
+- [x] The caterpillar already gets a laughing mouth when clicked. A similar theme (maybe snake or so) should also react when clicked: smile, look sad, or pull in its feelers. The reaction is chosen randomly each time the theme appears, but stays the same for that whole run (every click in one iteration gives the same reaction). (bc6c6fb) → http://localhost:8765/?m=10&look=snake (tap the snake)
 - [x] Saturn: include an animation for clicking Saturn. (8c36d09) → http://localhost:8765/?m=10&look=orbit (tap the planet or its ring)
 - [x] Hourglass: make the bubbles bigger. It looks a little bit weird how they are stuck before free fall but just in the air, in the bottleneck, without actual physical limitation. (3777308) → http://localhost:8765/?m=10&look=hourglass
 - [x] Hourglass: make the bigness of the circles proportional. The total size of them could/should fill up the whole half of the hourglass, to be proportionate to time, which it always (in general) should be. (3777308) → http://localhost:8765/?m=40&look=hourglass
