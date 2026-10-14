@@ -7,6 +7,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 ## To do
 
 - [ ] The car puff is great, but it should be directly where the car is, not so far away from it.
+- [ ] The snake's eyes should look in the direction as before, but change just for the click and the tongue movement: the right eye should visibly move more to the left, so it looks as if the snake changed its looking direction.
 
 ## In progress
 
