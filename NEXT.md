@@ -6,7 +6,6 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] After I picked the app icon: export it to icon-192, icon-512 and apple-touch-icon in docs/ and bump the cache name in sw.js. (waiting for your pick: lab/icons.html)
 - [ ] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available). (not started: needs your call on the cycle, e.g. 25 min work + 5 min break, long break after 4?)
 - [ ] What is the classical pomodoro technique? Choose that (for the pomodoro task above).
 
@@ -16,6 +15,8 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 
 ## Done
+
+- [x] After I picked the app icon (no. 2): export it to icon-192, icon-512 and apple-touch-icon in docs/ and bump the cache name in sw.js. (26c6426) → no visual change in the app; icons are docs/icon-512.png etc., source lab/icon-final.svg
 
 - [x] Generate more icon ideas, and then open it for me together with the old ones. (f75813e) → lab/icons.html (open the file directly; ideas 4–8 added, plus all eight at home-screen size)
 - [x] For the car, clicking should not make a surrounding thing, but some puff from the exhaust (Auspuff). (433f8ca) → http://localhost:8765/?m=10&look=cars (tap a car)
