@@ -16,6 +16,11 @@ py -m http.server 8765
 ```
 → http://localhost:8765 · Direktstart: `?m=37&t=Lunch` oder `?bis=18:30` · bestimmter Look: `&look=3.5` (Modus.Palette)
 
+## Online
+
+https://sinalaura.github.io/countdown/ – GitHub Pages veröffentlicht bei jedem Push auf `main` den Ordner `web/`
+(`.github/workflows/pages.yml`). Einmalig nötig: im Repo unter Settings → Pages → Source „GitHub Actions“ wählen.
+
 ## Weg in den App Store (Capacitor)
 
 Der Code in `web/` wird unverändert in eine native App verpackt.
