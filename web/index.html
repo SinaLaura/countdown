@@ -174,8 +174,8 @@
     { name: 'flower', lay: flower, reverse: true, goneScale: 0.45, goneMs: 2600, pos: petalPos, item: petal, before: stem, after: flowerCenter },
     // moons circle a planet, a passed minute drifts off into space
     { name: 'orbit', shape: 'circle', live: true, hit: 0.8, goneScale: 1, goneDim: 0.3, goneMs: 3000, lay: orbit, pos: moonPos, before: planet },
-    // balls with gravity in a jar, tapping kicks them up, a passed minute pops
-    { name: 'jar', shape: 'circle', hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 2200, goneLinear: true,
+    // a full jar of balls with gravity; tapping kicks one up, a passed minute makes the top one jump out
+    { name: 'jar', shape: 'circle', hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 2400, goneLinear: true,
       lay: jar, step: jarStep, pos: ballPos, item: jarBall, tap: jarTap, before: drawJar },
     // crawling caterpillar, turns into a butterfly at the end
     { name: 'caterpillar', shape: 'circle', live: true, body: 0.8, eyes: true, stripes: true, endArt: 'butterfly',
@@ -311,22 +311,28 @@
 
   // balls stacked above a jar; they drop in when the look appears
   function jar(n, w, h) {
-    const jw = Math.min(w * 0.6, h * 0.58), jh = Math.min(h * 0.92, jw * 1.5);
-    const left = (w - jw) / 2, right = left + jw, bottom = (h + jh) / 2, top = bottom - jh;
-    const r = Math.max(3, Math.min(24, Math.sqrt(jw * jh * 0.45 / (n * Math.PI))));
-    const cols = Math.max(1, Math.floor(jw / (2 * r)) - 1), rnd = seeded(n), pts = [];
+    // the jar is sized to the balls, so it is exactly full at the start: a full jar = no time has passed
+    const maxW = Math.min(w * 0.78, h * 0.62), maxH = h * 0.92;
+    let r = 30, cols = 1, rows = n;
+    for (; r > 3; r -= 0.5) {
+      cols = Math.max(1, Math.min(Math.floor((maxW - r * 1.1) / (2 * r)), Math.round(Math.sqrt(n / 1.5)) || 1));
+      rows = Math.ceil(n / cols);
+      if (rows * 1.75 * r + r * 1.5 <= maxH) break;
+    }
+    const jw = cols * 2 * r + r * 1.1, left = (w - jw) / 2, right = left + jw, rnd = seeded(n), pts = [];
+    let bottom = h;
     for (let i = 0; i < n; i++) {
       const row = Math.floor(i / cols), col = i % cols;
-      pts.push({ id: i, x: left + r * 2 + col * 2 * r + (row % 2) * r + (rnd() - 0.5) * 2, y: bottom - r - row * 2 * r - jh * 0.4, vx: 0, vy: 0 });
+      pts.push({ id: i, x: left + r * 1.05 + col * 2 * r + (row % 2) * r + (rnd() - 0.5) * 2, y: bottom - r - row * 1.75 * r, vx: 0, vy: 0 });
     }
-    // where a ball lies once it has jumped out: small piles next to the jar, first one on the right
-    const rs = r * 0.55, cap = Math.max(1, Math.floor((left - 10) / (rs * 2.1)));
-    for (let i = 0; i < n; i++) {
-      const k = n - 1 - i, j = Math.floor(k / 2), row = Math.floor(j / cap), col = j % cap, x = (row % 2) * rs;
-      pts[i].lx = k % 2 ? left - 8 - rs - col * rs * 2.1 - x : right + 8 + rs + col * rs * 2.1 + x;
-      pts[i].ly = bottom + 1.5 - rs - row * rs * 1.75;
-    }
-    return { pts, d: 2 * r, r, jar: { left, right, top, bottom } };
+    // let the balls settle once in advance, then put the rim just above the pile and centre everything
+    const geo = { pts, d: 2 * r, r, jar: { left, right, top: 0, bottom } }, X = { geo, pts };
+    for (let k = 0; k < 150; k++) jarStep(X, 1 / 60);
+    const pile = Math.min.apply(null, pts.map(p => p.y)) - r, jh = bottom - pile + r * 0.35, dy = (h + jh) / 2 - bottom;
+    pts.forEach(p => { p.y += dy; p.vx = p.vy = 0; });
+    bottom += dy;
+    geo.jar.bottom = bottom; geo.jar.top = bottom - jh;
+    return geo;
   }
 
   // two triangles of sand; a passed minute slides to the neck and drops into the lower bulb
@@ -919,32 +925,39 @@
   }
   function ballPos(X, i, g, p) {
     if (g <= 0) return null;
-    const J = X.geo.jar, r = X.geo.r;
-    if (!p.out) { p.out = true; p.ox = p.x; p.oy = p.y; }   // leaves the physics where it is
-    if (g >= 1 || p.ox === undefined) return { x: p.lx, y: p.ly, s: 0.55, dim: 1 };
-    if (g < 0.3) {   // charging up: swells, glows and trembles
+    const G = X.geo, J = G.jar, r = G.r;
+    if (!p.leaving) {
+      if (!goneAt.has(i)) { p.out = true; return { x: p.x, y: p.y, a: 0 }; }   // was already gone: just not there
+      // the ball on top of the pile is the one that leaves, so it swaps places with this one
+      let top = -1;
+      for (let j = 0; j < X.min; j++) if (!X.pts[j].out && (top < 0 || X.pts[j].y < X.pts[top].y)) top = j;
+      if (top >= 0 && X.pts[top].y < p.y) { const o = X.pts[top]; for (const k of ['x', 'y', 'vx', 'vy']) [p[k], o[k]] = [o[k], p[k]]; }
+      p.leaving = 1;
+    }
+    if (g >= 1) return { x: p.x, y: p.y, a: 0 };
+    if (g < 0.3) {   // charging up in the pile: swells, glows and trembles
       const t = g / 0.3;
-      return { x: p.ox + Math.sin(t * 40) * r * 0.08 * t, y: p.oy, s: 1 + 0.45 * Math.sin(t * Math.PI / 2), glow: t };
+      return { x: p.x + Math.sin(t * 40) * r * 0.08 * t, y: p.y, s: 1 + 0.4 * Math.sin(t * Math.PI / 2), glow: t };
     }
-    if (g < 0.85) {   // the jump: up over the rim, losing energy on the way
-      const t = (g - 0.3) / 0.55, arc = Math.max(0, (p.oy + p.ly) / 2 - (J.top - r * 2.5));
-      return {
-        x: lerp(p.ox, p.lx, 1 - (1 - t) * (1 - t)),
-        y: lerp(p.oy, p.ly, t) - arc * 4 * t * (1 - t),
-        s: lerp(1.45, 0.65, t), glow: 1 - t, dim: t * 0.7,
-      };
+    if (p.leaving === 1) {   // launch: the same kind of jump as a tap, just high enough to get over the rim
+      p.leaving = 2; p.out = true;
+      const v = Math.sqrt(2 * 1800 * Math.max(r * 2, p.y - (J.top - r * 2.5))), side = p.x < (J.left + J.right) / 2 ? -1 : 1;
+      p.vy = -v;
+      p.vx = side * (Math.abs((side < 0 ? J.left : J.right) - p.x) + r * 1.5) / (v / 1800);
     }
-    const u = (g - 0.85) / 0.15;   // a little bounce on landing
-    return { x: p.lx, y: p.ly - Math.abs(Math.sin(u * Math.PI)) * r * 0.4 * (1 - u), s: lerp(0.65, 0.55, u), dim: 0.7 + 0.3 * u };
+    const dt = Math.min(0.05, X.dt || 0.016);   // flies on its own, outside the pile's physics
+    p.vy += 1800 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    const t = (g - 0.3) / 0.7;
+    return { x: p.x, y: p.y, s: lerp(1.4, 1, Math.min(1, t * 3)), glow: Math.max(0, 1 - t * 2), a: g > 0.8 ? 1 - (g - 0.8) / 0.2 : 1 };
   }
   function jarBall(X, i, x, y, k, q, p, col) {
-    const c = X.c, r = X.d / 2 * k, glow = q && q.glow || 0, dim = q && q.dim || 0;
+    const c = X.c, r = X.d / 2 * k, glow = q && q.glow || 0;
     if (glow > 0) {
       c.globalAlpha = glow * 0.3;
       c.beginPath(); c.arc(x, y, r * 1.6, 0, TAU); c.fill();
       c.globalAlpha = 1;
     }
-    c.fillStyle = mix(mix(col, '#ffffff', glow * 0.45), X.P.dim, dim * 0.6);
+    c.fillStyle = mix(col, '#ffffff', glow * 0.45);
     c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
   }
   function jarTap(G, i) {
