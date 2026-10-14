@@ -6,11 +6,11 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] App icon: draw 3 logo suggestions based on the Ankabuti spider logo (../GoGirls-homepage/images/ankabuti-logo.jpg): (1) spider with a clock-face belly with two hands, no numbers, (2) spider hanging on its thread into a thin partly filled countdown ring, (3) round smiling spider body with tiny legs and a thin arc around it showing time left. Show the three on a localhost page (lab page) so I can pick.
 - [ ] After I picked the app icon: export it to icon-192, icon-512 and apple-touch-icon in docs/ and bump the cache name in sw.js.
 - [ ] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available).
 
 ## In progress
+- [ ] App icon: draw 3 logo suggestions based on the Ankabuti spider logo (../GoGirls-homepage/images/ankabuti-logo.jpg): (1) spider with a clock-face belly with two hands, no numbers, (2) spider hanging on its thread into a thin partly filled countdown ring, (3) round smiling spider body with tiny legs and a thin arc around it showing time left. Show the three on a localhost page (lab page) so I can pick. (session A, started 14:00)
 
 
 ## Done
