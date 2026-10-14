@@ -12,9 +12,9 @@ resources/    icon.png (1024×1024) für App-Store-Icons
 
 ```
 cd web
-py -m http.server 8000
+py -m http.server 8765
 ```
-→ http://localhost:8000 · Direktstart: `?m=37&t=Lunch` oder `?bis=18:30` · bestimmter Look: `&look=3.5` (Modus.Palette)
+→ http://localhost:8765 · Direktstart: `?m=37&t=Lunch` oder `?bis=18:30` · bestimmter Look: `&look=3.5` (Modus.Palette)
 
 ## Weg in den App Store (Capacitor)
 

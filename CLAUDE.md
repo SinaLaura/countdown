@@ -4,7 +4,7 @@ Generelle Regeln für diese App. Gelten immer, wenn der User nichts Genaueres sa
 Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen in [THEMES.md](THEMES.md).
 
 ## Projekt
-- Die App ist eine PWA in `web/`: reines HTML/JS in `web/index.html`, kein Build. Vorschau: `cd web && py -m http.server 8000`.
+- Die App ist eine PWA in `web/`: reines HTML/JS in `web/index.html`, kein Build. Vorschau: `cd web && py -m http.server 8765` (Port 8000 belegt auf diesem Rechner die Go-Girls-Seite).
 - Später soll sie mit Capacitor in den App Store (siehe [README.md](README.md)). Deshalb keine externen Abhängigkeiten oder CDNs, alles bleibt lokal.
 - Ein Theme ist ein Eintrag in `MODES` in `web/index.html`, mit Layout (`lay`) und optionalen Hooks (`pos`, `item`, `before`, `after`, `step`, `tap`, `bodyTap`, `endArt`, `noHead` …).
 - Testen: `?m=10&look=<index oder name>.<palette>`, z.B. `?m=10&look=ducks`.
