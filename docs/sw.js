@@ -1,5 +1,5 @@
 // Offline support: always try the network first (so updates show up), fall back to the cache.
-const CACHE = 'countdown-v53';
+const CACHE = 'countdown-v54';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -10,6 +10,13 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
   self.clients.claim();
+});
+
+// tapping the "time is up" notification brings the countdown to the front
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    .then(cs => cs.length ? cs[0].focus() : self.clients.openWindow('./')));
 });
 
 self.addEventListener('fetch', e => {

@@ -727,6 +727,7 @@
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // takes a number still being typed
     goFull();
     unlockAudio();
+    askToNotify();
     label = labelInput.value.trim();
     ls.set('countdown-label', label);
     pomo = -1;
@@ -784,6 +785,7 @@
       kick();
     }
     beep();
+    notify(pomo % 2 ? 'Focus!' : 'Break!', label ? label + ' · ' + pomoName(pomo + 1) : pomoName(pomo + 1));
     if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
     const from = end;
     doneTimer = setTimeout(() => {
@@ -915,6 +917,7 @@
   // the last minute leaves like the others: its animation and the sound play first, then the end screen comes
   let doneTimer = 0;
   function finish(quiet) {
+    clearTimeout(endTimer);
     if (pomo >= 0) return nextPhase();
     clearInterval(timer);
     clearTimeout(doneTimer);
@@ -929,6 +932,7 @@
     $('count').textContent = '0 left';
     kick();
     beep();
+    notify(text, 'Time is up.');
     if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]);
     doneTimer = setTimeout(() => showDone(), Math.min(3000, (MODES[look.m].goneMs || 800) + 600));
   }
@@ -2554,7 +2558,12 @@
   const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()
     ? window.Capacitor.Plugins : null;
 
+  // in the browser: one timer right at the end, so a tab in the background still ends (and rings) on time;
+  // the once-a-second tick gets slowed down there. On a phone the page usually sleeps until it's opened again.
+  let endTimer = 0;
   function scheduleAlarm() {
+    clearTimeout(endTimer);
+    endTimer = setTimeout(() => { if (!pausedAt && !$('run').hidden) tick(); }, Math.max(0, end - Date.now() - 950));
     const LN = native && native.LocalNotifications;
     if (!LN) return;
     LN.requestPermissions()
@@ -2565,8 +2574,25 @@
       .catch(() => {});
   }
   function cancelAlarm() {
+    clearTimeout(endTimer);
     const LN = native && native.LocalNotifications;
     if (LN) LN.cancel({ notifications: [{ id: 1 }] }).catch(() => {});
+  }
+
+  // browser notification when time is up and the countdown isn't in front (the app does this with LocalNotifications)
+  function askToNotify() {
+    if (native || !('Notification' in window) || Notification.permission !== 'default') return;
+    try { const p = Notification.requestPermission(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+  }
+  function notify(title, body) {
+    if (native || !('Notification' in window) || Notification.permission !== 'granted') return;
+    if (document.visibilityState === 'visible' && document.hasFocus()) return;
+    const opt = { body, icon: 'icon-192.png', tag: 'countdown' };
+    const plain = () => { try { new Notification(title, opt); } catch (e) {} };
+    // phones only show notifications through the service worker
+    if (navigator.serviceWorker && navigator.serviceWorker.controller)
+      navigator.serviceWorker.ready.then(r => r.showNotification(title, opt)).catch(plain);
+    else plain();
   }
 
   // ================= keep the screen on while counting down =================

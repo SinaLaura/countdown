@@ -51,6 +51,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Das letzte Item geht wie alle anderen mit seiner Animation ab, während der Endton spielt. Erst danach (je nach `goneMs`, max. 3 s) kommt der End-Bildschirm.
 - Ein Theme darf eine End-Animation haben (`endArt`, z.B. Schmetterling nach der Raupe, Knall nach der Lunte).
 - Geheimnis: 10× auf die Done-Seite tippen zeigt das letzte Bild des Looks (alle Minuten weg, z.B. Igel ohne Stacheln); 3 Tipps führen zurück.
+- Im Hintergrund: ein eigener Timer genau aufs Ende, damit ein Browser-Tab im Hintergrund pünktlich endet und klingelt. Ist die Seite nicht im Vordergrund, kommt eine Benachrichtigung (Erlaubnis wird beim ersten Start gefragt; in der App über LocalNotifications). Auf dem Handy schläft eine Webseite im Hintergrund meist, dann hilft nur die App.
 
 ## Barrierefreiheit
 - Bei `prefers-reduced-motion` gibt es keine Dauer-Animationen (`still`).
