@@ -59,4 +59,4 @@ Offline genommen (`off: true` in `ALL_MODES`, im Code erhalten, nicht mehr in de
 ★ = Favoriten, weil sie beim Antippen am lebendigsten reagieren.
 
 ## Neue Ideen
-- 
+- [ ] **Gurke schneiden:** Pro Minute wird eine Scheibe von der Gurke abgeschnitten und fällt zur Seite, bis nur noch das Endstück übrig ist.
