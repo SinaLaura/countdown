@@ -467,7 +467,7 @@
       for (const p of left) { const dd = (p.x - cur.x) ** 2 + (p.y - cur.y) ** 2; if (dd < bd) { bd = dd; best = p; } }
       cur = best;
     }
-    return { pts, d: Math.min(30, Math.min(cw, ch) * 0.55), mid: { x: w / 2, y: h / 2 } };
+    return { pts, d: Math.min(70, Math.min(cw, ch) * 0.55), mid: { x: w / 2, y: h / 2 } };
   }
 
   // a spider hanging on its thread; legs alternate left/right, the lower ones fall off first
@@ -483,7 +483,7 @@
       const F = { x: cx + dx * (rb + L), y: cy + dy * (rb + L) + L * 0.15 };                 // foot lower
       pts.push({
         x: K.x, y: K.y, bx: B.x - K.x, by: B.y - K.y, fx: F.x - K.x, fy: F.y - K.y, hr: L * 0.4, ring: L * 0.16,
-        lx: cx + (rnd() - 0.5) * w * 0.6, ly: h - 14 - rnd() * 6, spin: (rnd() - 0.5) * 6,
+        lx: w / 2 + (rnd() - 0.5) * w * 0.94, ly: h - 14 - rnd() * 6, spin: (rnd() - 0.5) * 6,
       });
     }
     return { pts, d: lw, spider: { cx, cy, R, rb } };
@@ -491,7 +491,7 @@
 
   // toy cars parked at random spots, facing random ways; d is the car length
   function cars(n, w, h) {
-    const rnd = seeded(n * 7 + 3), d = Math.max(8, Math.min(46, Math.sqrt(0.27 * w * h / n))), pts = [];
+    const rnd = seeded(n * 7 + 3), d = Math.max(8, Math.min(110, Math.sqrt(0.27 * w * h / n))), pts = [];
     for (let i = 0; i < n; i++) {
       pts.push({ x: d + rnd() * Math.max(1, w - 2 * d), y: d + rnd() * Math.max(1, h - 2 * d), a: rnd() * TAU, turn: 0, boost: 0, v: 0 });
     }
@@ -522,8 +522,8 @@
 
   // ducklings in a row behind the mother on a loop around the pond; the first one swims right behind her
   function ducks(n, w, h) {
-    const first = loopPath(w, h, 30), gap0 = Math.min(50, first.len / (n * 1.3 + 3));
-    const path = loopPath(w, h, Math.max(14, gap0 * 0.8)), gap = Math.min(50, path.len / (n * 1.3 + 3)), d = gap / 1.3;
+    const first = loopPath(w, h, 30), gap0 = Math.min(110, first.len / (n * 1.3 + 3));
+    const path = loopPath(w, h, Math.max(14, gap0 * 0.8)), gap = Math.min(110, path.len / (n * 1.3 + 3)), d = gap / 1.3;
     const start = path.len * 0.3, pts = [];
     // which duckling gets lost when is random (but the same every time for this length)
     const rnd = seeded(n * 17 + 5), slot = Array.from({ length: n }, (_, i) => i);
@@ -540,7 +540,7 @@
     const R = Math.min(w * 0.3, h * 0.26), ry = R * 0.68, cx = w * 0.44, cy = h * 0.56, rnd = seeded(n * 17 + 5);
     const a0 = Math.PI * 0.92, a1 = Math.PI * 1.9, arc = (R + ry) / 2 * (a1 - a0);
     const rows = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(arc / 9)))), per = Math.ceil(n / rows);
-    const wid = Math.min(16, arc / per * 1.4), len = R * 0.62, pts = [];
+    const wid = Math.min(30, arc / per * 1.4), len = R * 0.62, pts = [];
     for (let i = 0; i < n; i++) {
       const row = Math.floor(i / per), k = i % per, cnt = Math.min(per, n - row * per);
       const ang = cnt === 1 ? Math.PI * 1.45 : lerp(a0, a1, (k + (row % 2) * 0.5) / (cnt - 0.5 * (row % 2 ? 0 : 1) || 1));
@@ -548,7 +548,7 @@
       const bx = cx + Math.cos(ang) * R * 0.9 * s, by = cy + Math.sin(ang) * ry * 0.9 * s;
       pts.push({
         x: bx + Math.cos(ang) * len / 2, y: by + Math.sin(ang) * len / 2, ang, len, wid, hr: len * 0.45,
-        lx: cx + (rnd() - 0.5) * w * 0.7, ly: h - 10 - rnd() * 6, spin: (rnd() - 0.5) * 6,
+        lx: w / 2 + (rnd() - 0.5) * w * 0.94, ly: h - 10 - rnd() * 6, spin: (rnd() - 0.5) * 6,
       });
     }
     return { pts, d: wid, hog: { cx, cy, R, ry } };
