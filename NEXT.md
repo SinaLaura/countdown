@@ -6,7 +6,8 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] 
+- [ ] Jar: the slider should be the same color as the jar's line
+- [ ] Jar: the line should not be bigger in size
 
 ## In progress
 
