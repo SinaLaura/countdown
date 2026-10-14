@@ -6,13 +6,13 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] Disable zoom in.
 - [ ] Enable changing the time of the pomodoro.
 - [ ] In some themes the items are cut off on top, for example when the time is very long.
 - [ ] The pause button and the exit button use one or two lines depending on whether it's paused or not, which looks bad on the phone because the image changes accordingly. Just keep them above each other.
 
 ## In progress
 
+- [ ] Disable zoom in. (opus-a, started 16:16)
 
 ## Done
 
