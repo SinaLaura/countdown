@@ -14,10 +14,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] In general the items should be proportional and fill up the space. That is almost always not the case with the basic boring themes. Add that general instruction to CLAUDE.md and change it for the boring themes: use the full size of the browser (not necessarily filling it completely, but use it). (session A, started 13:00)
 
 ## Done
 
+- [x] In general the items should be proportional and fill up the space. That is almost always not the case with the basic boring themes. Add that general instruction to CLAUDE.md and change it for the boring themes: use the full size of the browser (not necessarily filling it completely, but use it). (e578f70) → http://localhost:8765/?m=10&look=snake (offline themes were enlarged too, they're just not in rotation)
 - [x] The caterpillar already gets a laughing mouth when clicked. A similar theme (maybe snake or so) should also react when clicked: smile, look sad, or pull in its feelers. The reaction is chosen randomly each time the theme appears, but stays the same for that whole run (every click in one iteration gives the same reaction). (bc6c6fb) → http://localhost:8765/?m=10&look=snake (tap the snake)
 - [x] Saturn: include an animation for clicking Saturn. (8c36d09) → http://localhost:8765/?m=10&look=orbit (tap the planet or its ring)
 - [x] Hourglass: make the bubbles bigger. It looks a little bit weird how they are stuck before free fall but just in the air, in the bottleneck, without actual physical limitation. (3777308) → http://localhost:8765/?m=10&look=hourglass
