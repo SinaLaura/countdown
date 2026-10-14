@@ -10,10 +10,11 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] For the "solar system" make it collapse in the center during pause (session 406605b7, started 13:03)
-- [ ] Solar system: same (collapse in the center during pause) for the solar system's stars arrangement (session 406605b7, started 13:03)
+
 ## Done
 
+- [x] For the "solar system" make it collapse in the center during pause (ad7e6f9) → http://localhost:8765/?m=30&look=orbit
+- [x] Solar system: same (collapse in the center during pause) for the solar system's stars arrangement (ad7e6f9) → http://localhost:8765/?m=30&look=stars
 - [x] Jar: when a bubble jumps out of the jar on its own, it still looks different than when I tap it myself. Make it look more like tapping it myself (d8cb9a2) → http://localhost:8765/?m=10&look=jar
 - [x] Die Raupe soll kurz einen lächelnden Mund bekommen, wenn man sie anklickt, dann geht es wieder weg (9146ad2) → http://localhost:8765/?m=10&look=caterpillar
 - [x] The slider in the hourglass should be centered (dde30ae) → http://localhost:8765/?m=10&look=hourglass
