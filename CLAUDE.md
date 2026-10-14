@@ -34,7 +34,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Die Fläche wird blass (ca. 30 %), und der Untertitel zeigt „paused“. Themes mit `noHead` zeigen „paused“ selbst.
 - Bewegungen kommen sanft zur Ruhe (`calm` geht gegen 0) und laufen danach weiter. Neue bewegte Themes nehmen deshalb `X.t` als Zeit, nicht `X.now`.
 - Ein Theme darf eine eigene, ruhige Pausen-Reaktion haben (z.B. der Igel schläft, die Autos parken).
-- Soll die Pausen-Reaktion erst in voller Helligkeit zu sehen sein, verzögert `dimDelay` (ms) das Blasswerden (z.B. Sanduhr).
+- Zeigt ein Theme die Pause selbst deutlich genug, bleibt die Fläche mit `noDim` hell (z.B. die Sanduhr mit ihrem Schieber).
 
 ## Ende
 - Groß steht das Label in Großbuchstaben mit „!“ (ohne Label „DONE!“), dazu der Button „Exit“.

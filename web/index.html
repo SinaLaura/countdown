@@ -74,6 +74,7 @@
   .foot { display: flex; flex-wrap: wrap; justify-content: center; }
   #stage { transition: opacity .4s; }
   .paused #stage { opacity: .3; }
+  .paused.nodim #stage { opacity: 1; }   /* the theme shows the pause itself */
   .exit { align-self: center; padding: 12px 28px; font-size: 15px; letter-spacing: .06em; }
 
   /* done */
@@ -180,7 +181,7 @@
     { name: 'caterpillar', shape: 'circle', live: true, body: 0.8, eyes: true, stripes: true, endArt: 'butterfly',
       lay: (n, w, h) => grid(n, w, h, 0.78, 1.6, { snake: true, max: 40 }), pos: crawl, after: antennae },
     // sand runs from the top bulb into the bottom one
-    { name: 'hourglass', shape: 'circle', goneScale: 1, goneDim: 0.55, goneMs: 1400, dimDelay: 650, lay: hourglass, pos: grainPos, before: glass, after: plug },
+    { name: 'hourglass', shape: 'circle', goneScale: 1, goneDim: 0.55, goneMs: 1600, noDim: true, lay: hourglass, pos: grainPos, item: grain, before: glass, after: plug },
     // a burning fuse with sparks
     { name: 'fuse', shape: 'circle', live: true, endArt: 'bang', goneScale: 0.4, lay: fuse, step: fuseStep, before: fuseLine, after: sparks },
     // a bar of chocolate, pieces break off and leave a dashed gap
@@ -348,12 +349,18 @@
       bot = tri(cell, cy + 3, cy + hh, false);
       if (top.length >= n && bot.length >= n) break;
     }
-    const pts = [];
+    // the pile below grows like a real mound: middle of the floor first, then outwards and upwards
+    const floor = cy + hh;
+    bot.sort((a, b) => (Math.abs(a.x - cx) * 0.6 + floor - a.y) - (Math.abs(b.x - cx) * 0.6 + floor - b.y));
+    // the sand above drains from the middle of its surface (a little dip forms), so the top row's centre goes first
+    top = top.slice(0, n).sort((a, b) => b.y - a.y || Math.abs(b.x - cx) - Math.abs(a.x - cx));
+    // grains are a little irregular, like real sand: slightly shifted, different sizes, shapes and shades
+    const pts = [], rnd = seeded(n * 11 + 3), j = () => (rnd() - 0.5) * cell * 0.12;
     for (let i = 0; i < n; i++) {
       const t = top[i] || top[top.length - 1], b = bot[n - 1 - i] || bot[0];
-      pts.push({ x: t.x, y: t.y, bx: b.x, by: b.y });
+      pts.push({ x: t.x + j(), y: t.y + j(), bx: b.x + j(), by: b.y + j(), sz: 0.82 + rnd() * 0.2, ov: 0.78 + rnd() * 0.2, rot: rnd() * Math.PI, tone: rnd() * 2 - 1 });
     }
-    return { pts, d: cell * 0.82, glass: { cx, cy, hh, gw } };
+    return { pts, d: cell * 0.92, glass: { cx, cy, hh, gw } };
   }
 
   // beads on a winding fuse that burns down from the far end
@@ -650,8 +657,6 @@
     letSleep();
     cancelAlarm();
     ls.set('countdown', { end, total, label, pausedAt });
-    // a theme can first show its pause reaction at full brightness before the stage fades (dimDelay, ms)
-    $('stage').style.transitionDelay = (MODES[look.m].dimDelay || 0) + 'ms';
     $('run').classList.add('paused');
     $('pause').textContent = "I'm back";
     $('sub').textContent = (label ? label + ' · ' : '') + 'paused';
@@ -662,7 +667,6 @@
     end += Date.now() - pausedAt;
     pausedAt = 0;
     ls.set('countdown', { end, total, label });
-    $('stage').style.transitionDelay = '0ms';
     $('run').classList.remove('paused');
     $('pause').textContent = awayText();
     $('sub').textContent = subText();
@@ -742,6 +746,7 @@
 
   function relayout() {
     $('run').classList.toggle('nohead', !!MODES[look.m].noHead);
+    $('run').classList.toggle('nodim', !!MODES[look.m].noDim);
     const r = $('stage').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
     W = r.width; H = r.height;
     if (!W || !H) return;
@@ -960,13 +965,21 @@
   }
 
   // ---- hourglass ----
+  // a grain sinks to the neck, drops through it with gravity, lands on the pile and rolls into its place
   function grainPos(X, i, g, p) {
     if (g <= 0) return null;
     if (g >= 1) return { x: p.bx, y: p.by };
-    const G = X.geo.glass;
-    if (g < 0.3) { const t = g / 0.3; return { x: lerp(p.x, G.cx, t), y: lerp(p.y, G.cy, t) }; }
-    const t = (g - 0.3) / 0.7;
-    return { x: lerp(G.cx, p.bx, t), y: lerp(G.cy, p.by, t * t) };
+    const G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), top = G.cy - nk;
+    const land = Math.max(G.cy + nk * 2, p.by - Math.abs(p.bx - G.cx) * 0.6);   // where it hits the slope of the pile
+    if (g < 0.35) { const t = g / 0.35, e = t * t * (3 - 2 * t); return { x: lerp(p.x, G.cx, e), y: lerp(p.y, top, e) }; }
+    if (g < 0.75) { const t = (g - 0.35) / 0.4; return { x: G.cx, y: lerp(top, land, t * t) }; }
+    const t = (g - 0.75) / 0.25, e = 1 - (1 - t) * (1 - t);
+    return { x: lerp(G.cx, p.bx, e), y: lerp(land, p.by, e) };
+  }
+  function grain(X, i, x, y, k, q, p, col) {
+    const c = X.c, r = X.d / 2 * k * p.sz;
+    c.fillStyle = mix(col, p.tone > 0 ? '#ffffff' : '#000000', Math.abs(p.tone) * 0.16);
+    c.beginPath(); c.ellipse(x, y, r, r * p.ov, p.rot, 0, TAU); c.fill();
   }
   function glass(X) {
     const { c, P } = X, G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), l = G.cx - G.gw / 2, r = G.cx + G.gw / 2;
@@ -982,14 +995,14 @@
     c.stroke();
   }
   // paused: a thin rod slides in from the side and blocks the neck
-  // paused: a short slider pushes in from the side and closes the neck (before the stage fades); it slides back out on resume
+  // paused: a short slider pushes in from the side and closes the neck; it slides back out on resume
   function plug(X) {
     const e = pausedAt ? clamp((Date.now() - pausedAt) / 450) : 1 - X.calm, k = e * e * (3 - 2 * e);
     if (k <= 0) return;
     if (k < 1) X.more = true;
     const { c, P } = X, G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), len = nk * 5, x = lerp(G.cx + nk * 3, G.cx - nk * 1.6, k);
     c.globalAlpha = Math.min(1, k * 3);
-    c.strokeStyle = P.text; c.lineWidth = Math.max(2, nk * 0.5); c.lineCap = 'round';
+    c.strokeStyle = P.text; c.lineWidth = 2; c.lineCap = 'round';
     c.beginPath(); c.moveTo(x, G.cy); c.lineTo(x + len, G.cy); c.stroke();
     c.globalAlpha = 1;
   }
