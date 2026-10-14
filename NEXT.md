@@ -8,10 +8,9 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] I don't like the display for Pomodoro. Rethink it (but it should stay consistent with the Minutes and Time menu). (sonnet-a, started 16:53)
-
 ## Done
 
+- [x] I don't like the display for Pomodoro. Rethink it (but it should stay consistent with the Minutes and Time menu). (2743c2b) → http://localhost:8765/ (choose „Pomodoro“: Focus, Break, Long break, each with − number + like Minutes)
 - [x] When the browser or app is not visibly open, does the countdown still continue (as it should)? Will it still ring? (065447d) → http://localhost:8765/?m=1 (switch to another tab and wait: it ends and rings on time; on a phone a sleeping web page only catches up when opened, the store app notifies)
 - [x] It should also send a notification when it's not in focus. (065447d) → http://localhost:8765/ (allow notifications on the first Start, then leave the tab)
 - [x] When you click the done page 10 times, show the theme's picture after the last minute is gone, e.g. the hedgehog without any spikes, Saturn without any moons (and back to done after 3 clicks). (d6f6291) → http://localhost:8765/?m=1&look=hedgehog (wait a minute, then tap the done page 10 times)
