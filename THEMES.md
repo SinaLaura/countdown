@@ -4,7 +4,7 @@ Regeln für alle Themes stehen in [CLAUDE.md](CLAUDE.md). Testen: `?m=10&look=<i
 
 ## Gebaut
 
-Offline genommen (`off: true` in `ALL_MODES`, im Code erhalten, nicht mehr in der Rotation): dots, squares, spiral, clock, bars, honey, rings, diamonds, tiles (die Nummern 0, 1, 3–9 unten). Die Nummern in `?look=` zählen nur die aktiven Themes, Namen der abgeschalteten funktionieren nicht mehr; zum Zurückholen `off: true` entfernen.
+Offline genommen (`off: true` in `ALL_MODES`, im Code erhalten, nicht mehr in der Rotation): dots, squares, bars, tiles (4 von 9 ausgemustert). Zurück in der Rotation: spiral, clock, honey, rings, diamonds. Die Nummern in `?look=` zählen nur die aktiven Themes; zum Zurückholen `off: true` entfernen.
 
 | # | Name | Was pro Minute passiert |
 |---|---|---|
