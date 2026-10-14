@@ -6,17 +6,17 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] The honey cells should not get a round outline when you click them, but a hexagonal one.
-- [ ] The stars should also get a different outline shape when clicked (not round).
-- [ ] The hedgehog should get a spiky outline when clicked, and only at the edge of its spike.
 
 ## In progress
-- [ ] Can you make the disappearing ducks take the longest way to leave, not the shortest. (session opus, started 17:05)
-- [ ] The ducks' movements seem not so smooth anymore since you made the screen dynamically wide. (session opus, started 17:05)
+- [ ] The honey cells should not get a round outline when you click them, but a hexagonal one. (session opus, started 17:25)
+- [ ] The stars should also get a different outline shape when clicked (not round). (session opus, started 17:25)
+- [ ] The hedgehog should get a spiky outline when clicked, and only at the edge of its spike. (session opus, started 17:25)
 
 
 ## Done
 
+- [x] Can you make the disappearing ducks take the longest way to leave, not the shortest. (717e42e) → http://localhost:8765/?m=3&look=ducks (wait a minute: the lost duckling heads to the far side)
+- [x] The ducks' movements seem not so smooth anymore since you made the screen dynamically wide. (717e42e) → http://localhost:8765/?m=10&look=ducks (rounder loop, heading blends smoothly)
 - [x] The snake's eyes should look in the direction as before, but change just for the click and the tongue movement: the right eye should visibly move more to the left, so it looks as if the snake changed its looking direction. (6e9cdf4) → http://localhost:8765/?m=10&look=snake (tap the head)
 - [x] The car puff is great, but it should be directly where the car is, not so far away from it. (248c120) → http://localhost:8765/?m=10&look=cars (tap a car)
 - [x] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available). (9c39041) → http://localhost:8765/ (choose „Pomodoro“ on the start screen; or directly http://localhost:8765/?pomo, ?pomo=1 starts with a break)
