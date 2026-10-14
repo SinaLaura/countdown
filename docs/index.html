@@ -163,7 +163,7 @@
   const ALL_MODES = [
     { name: 'dots',     off: true, shape: 'circle',  lay: (n, w, h) => grid(n, w, h, 1.6, 1.6) },
     { name: 'squares',  off: true, shape: 'square',  lay: (n, w, h) => grid(n, w, h, 1.5, 1.5) },
-    { name: 'snake',    shape: 'circle',  body: 0.42, eyes: true, lay: (n, w, h) => grid(n, w, h, 1.45, 1.45, { snake: true }) },
+    { name: 'snake',    shape: 'circle',  body: 0.42, eyes: true, lay: (n, w, h) => grid(n, w, h, 1.45, 1.45, { snake: true }), after: snakeFace, tap: snakeTap },
     { name: 'spiral',   off: true, shape: 'circle',  guide: 'path', lay: spiral },
     { name: 'clock',    off: true, shape: 'circle',  guide: 'ring', lay: ring },
     { name: 'bars',     off: true, shape: 'bar',     lay: (n, w, h) => grid(n, w, h, 1.8, 3.6, { max: 26 }) },
@@ -1173,6 +1173,43 @@
     }
   }
   function smile(G) { G.smile = performance.now(); }
+
+  // ---- snake ----
+  // tapped: the head reacts. Which reaction (smile, sad, tongue) is drawn once per run and stays the same for every tap
+  let snakeRun = -1, snakeKind = 0;
+  function snakeTap(G) {
+    if (snakeRun !== born) { snakeRun = born; snakeKind = Math.random() * 3 | 0; }
+    G.react = performance.now();
+  }
+  function snakeFace(X) {
+    const G = X.geo, t = G.react ? (X.now - G.react) / 1400 : 1;
+    if (t < 0 || t >= 1 || X.min <= 0 || X.d <= 12) return;
+    const { c, P, d } = X, p = X.pts[0], q = X.pts[1] || { cx: p.cx - 1, cy: p.cy };
+    const a = t < 0.12 ? t / 0.12 : t > 0.75 ? (1 - t) / 0.25 : 1;
+    c.lineCap = 'round'; c.globalAlpha = a;
+    if (snakeKind === 0) {
+      c.strokeStyle = P.bg; c.lineWidth = Math.max(1.5, d * 0.055);
+      c.beginPath(); c.arc(p.cx, p.cy + d * 0.02, d * 0.15 * (0.6 + 0.4 * a), Math.PI * 0.18, Math.PI * 0.82); c.stroke();
+    } else if (snakeKind === 1) {
+      c.strokeStyle = P.bg; c.lineWidth = Math.max(1.5, d * 0.055);
+      c.beginPath(); c.arc(p.cx, p.cy + d * 0.3, d * 0.13, Math.PI * 1.2, Math.PI * 1.8); c.stroke();
+      c.fillStyle = mix(P.fg, '#ffffff', 0.6);   // a tear running down
+      const ty = p.cy - d * 0.02 + d * 0.3 * t;
+      c.beginPath(); c.arc(p.cx - d * 0.16, ty, d * 0.045, 0, TAU); c.fill();
+    } else {
+      // forked tongue flicks out of the front and back in
+      const dx = p.cx - q.cx, dy = p.cy - q.cy, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+      const out = Math.abs(Math.sin(t * TAU * 2)) * d * 0.55, r = d * 0.42, x0 = p.cx + ux * r, y0 = p.cy + uy * r;
+      const x1 = x0 + ux * out, y1 = y0 + uy * out, f = out * 0.35;
+      c.strokeStyle = P.text; c.lineWidth = Math.max(1.5, d * 0.06);
+      c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1);
+      c.moveTo(x1, y1); c.lineTo(x1 + ux * f - uy * f * 0.6, y1 + uy * f + ux * f * 0.6);
+      c.moveTo(x1, y1); c.lineTo(x1 + ux * f + uy * f * 0.6, y1 + uy * f - ux * f * 0.6);
+      c.stroke();
+    }
+    c.globalAlpha = 1; c.lineCap = 'butt';
+    X.more = true;
+  }
 
   // ---- hourglass ----
   // a grain sinks to the neck, drops through it with gravity, lands on the pile and rolls into its place
