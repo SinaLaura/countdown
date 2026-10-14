@@ -57,7 +57,7 @@
     let nx = dy / len, ny = -dx / len;
     if ((ix - ax) * nx + (iy - ay) * ny > 0) { nx = -nx; ny = -ny; }
     return Bodies.rectangle((ax + bx) / 2 + nx * th / 2, (ay + by) / 2 + ny * th / 2, len + th, th,
-      { isStatic: true, angle: Math.atan2(dy, dx), friction: slip ? 0 : 0.3, frictionStatic: slip ? 0 : 0.5 });
+      { isStatic: true, angle: Math.atan2(dy, dx), friction: slip ? 0 : 0.15, frictionStatic: slip ? 0 : 0.25 });
   }
 
   function start() {
@@ -95,8 +95,8 @@
       for (let k = 0; k < cnt && grains.length < n; k++) {
         const x = cx - (cnt - 1) * d / 2 + k * d + (row % 2 ? d * 0.25 : 0);
         const rad = d / 2 * (0.85 + Math.random() * 0.15);
-        const b = Bodies.polygon(x, y, 6 + (Math.random() * 3 | 0), rad, {
-          friction: 0.5, frictionStatic: 1, restitution: 0, frictionAir: 0.012, density: 0.002, angle: Math.random() * TAU,
+        const b = Bodies.circle(x, y, rad, {
+          friction: 0.4, frictionStatic: 0.8, restitution: 0, frictionAir: 0.015, density: 0.002,
           collisionFilter: { category: 0x0001, mask: ALL },
         });
         b.tone = Math.random() * 2 - 1;
@@ -131,13 +131,22 @@
     show();
   }
 
-  function step(now) {
-    if (!paused) {
-      if (left() && now - last >= every) { last = now; release(); }
-      for (let k = 0; k < 2; k++) Engine.update(engine, 1000 / 120);
+  // one frame of physics (about 1/60 s)
+  function tick(now) {
+    if (paused) return;
+    if (left() && now - last >= every) { last = now; release(); }
+    for (let k = 0; k < 2; k++) Engine.update(engine, 1000 / 120);
+    for (const b of grains) {
+      if (!b.released || b.collisionFilter.mask === ALL) continue;
       // once through the neck, a grain is solid against the gate again
-      for (const b of grains) if (b.released && b.collisionFilter.mask !== ALL && b.position.y > G.cy + G.d) b.collisionFilter.mask = ALL;
+      if (b.position.y > G.cy + G.d) b.collisionFilter.mask = ALL;
+      // a released grain that hangs in the funnel gets a gentle push towards the neck
+      else if (now - b.released > 1200 && b.speed < 0.3)
+        Body.setVelocity(b, { x: Math.sign(G.cx - b.position.x) * Math.min(1, Math.abs(G.cx - b.position.x) * 0.05), y: 1 });
     }
+  }
+  function step(now) {
+    tick(now);
     draw(now);
     requestAnimationFrame(step);
   }
@@ -160,11 +169,8 @@
       col = mix(col, P.dim, g * 0.55);
       const pt = pulses.get(b.id), pk = pt !== undefined ? Math.sin(Math.PI * Math.min(1, (now - pt) / 450)) : 0;
       if (pt !== undefined && now - pt > 450) pulses.delete(b.id);
-      const v = b.vertices, s = 1 + 0.3 * pk;
       c.fillStyle = col;
-      c.beginPath();
-      for (const p of v) c.lineTo(b.position.x + (p.x - b.position.x) * s, b.position.y + (p.y - b.position.y) * s);
-      c.closePath(); c.fill();
+      c.beginPath(); c.arc(b.position.x, b.position.y, b.circleRadius * (1 + 0.3 * pk), 0, TAU); c.fill();
     }
     if (paused) {   // the app's pause slider, centred on the neck
       const len = nk * 5;
