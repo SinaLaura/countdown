@@ -199,7 +199,7 @@
     { name: 'cars', live: true, hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 3000, lay: cars, step: carStep, pos: carPos, item: car, tap: carTap },
     // ducklings swim in line behind their mother, the last one loses track each minute; tap the mother and she looks back
     { name: 'ducks', live: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: ducks, step: duckStep, pos: duckPos, item: duckling,
-      tap: () => peep(), before: stream, after: motherDuck, bodyTap: duckTap },
+      tap: () => peep(), after: motherDuck, bodyTap: duckTap },
   ];
 
   const TAU = Math.PI * 2;
@@ -1185,13 +1185,6 @@
     c.restore();
   }
   function duckling(X, i, x, y, k, q, p, col) { duckShape(X.c, X.P, x, y, q ? q.r : 0, X.d * k, col); }
-  function stream(X) {
-    const { c, P, d } = X, L = X.geo.duck.path;
-    c.strokeStyle = P.dim; c.lineWidth = d;
-    c.globalAlpha = X.all * 0.45;
-    c.beginPath(); L.pts.forEach(p => c.lineTo(p.x, p.y)); c.closePath(); c.stroke();
-    c.globalAlpha = X.all;
-  }
   function motherDuck(X) {
     const { c, P, d } = X, D = X.geo.duck, q = pathAt(D.path, D.s), k = easeBack(X.all);
     const wob = X.still ? 0 : Math.sin(X.now / 300) * 0.08;
