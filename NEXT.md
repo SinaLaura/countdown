@@ -6,6 +6,8 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
+- [ ] The Pomodoro menu looks good, but above it write a sentence about how the time setting will be then. Make a preview.
+
 ## In progress
 
 ## Done
