@@ -6,12 +6,12 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] The car puff is great, but it should be directly where the car is, not so far away from it.
 - [ ] The snake's eyes should look in the direction as before, but change just for the click and the tongue movement: the right eye should visibly move more to the left, so it looks as if the snake changed its looking direction.
 - [ ] Can you make the disappearing ducks take the longest way to leave, not the shortest.
 - [ ] The ducks' movements seem not so smooth anymore since you made the screen dynamically wide.
 
 ## In progress
+- [ ] The car puff is great, but it should be directly where the car is, not so far away from it. (session opus, started 16:45)
 
 
 ## Done
