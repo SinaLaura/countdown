@@ -79,6 +79,7 @@
   #stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   .foot { display: flex; flex-wrap: wrap; justify-content: center; }
   #stage { transition: opacity .4s; }
+  .brk #stage { opacity: .45; }   /* a pomodoro break looks resting too, a bit less faded than a pause */
   .paused #stage { opacity: .3; }
   .paused.nodim #stage { opacity: 1; }   /* the theme shows the pause itself */
   .exit { align-self: center; padding: 12px 28px; font-size: 15px; letter-spacing: .06em; }
@@ -753,6 +754,7 @@
     shownMin = -1;
     goneAt.clear(); pulses.clear(); tints.clear();
     $('sub').textContent = subText();
+    $('run').classList.toggle('brk', pomo >= 0 && pomo % 2 === 1);
     show('run');
     born = performance.now();
     relayout();
