@@ -20,6 +20,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 - Keine Beispiele oder Vorschläge in Eingabefeldern („What for?“ steht ohne Vorschlag).
 - Die Anzeige lautet „N left“, ohne „min“.
 - Buttons: „Start“, „Exit“ (im Countdown und am Ende). Der Pause-Button zeigt jeden Tag einen anderen „ich bin kurz weg“-Text aus `AWAY` und in der Pause „I'm back“.
+- Der Pause-Button steht immer einzeilig über „Exit“, damit sich die Höhe des Bildes beim Pausieren nicht ändert.
 
 ## Aussehen und Tippen
 - Es gibt keine Design-Einstellungen. Das Aussehen ändert sich nur durch Tippen.
