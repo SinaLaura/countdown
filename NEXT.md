@@ -6,6 +6,9 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
+- [ ] The honey cells should not get a round outline when you click them, but a hexagonal one.
+- [ ] The stars should also get a different outline shape when clicked (not round).
+- [ ] The hedgehog should get a spiky outline when clicked, and only at the edge of its spike.
 
 ## In progress
 - [ ] Can you make the disappearing ducks take the longest way to leave, not the shortest. (session opus, started 17:05)
