@@ -206,7 +206,7 @@
       lay: jar, step: jarStep, pos: ballPos, item: jarBall, tap: jarTap, before: drawJar },
     // crawling caterpillar, turns into a butterfly at the end
     { name: 'caterpillar', shape: 'circle', live: true, body: 0.8, eyes: true, stripes: true, endArt: 'butterfly',
-      lay: (n, w, h) => grid(n, w, h, 0.78, 1.6, { snake: true, max: 40 }), pos: crawl, after: antennae, tap: smile },
+      lay: (n, w, h) => grid(n, w, h, 0.78, 1.6, { snake: true, max: 40, pad: 1.2 }), pos: crawl, after: antennae, tap: smile },
     // sand runs from the top bulb into the bottom one
     { name: 'hourglass', shape: 'circle', goneScale: 1, goneDim: 0.55, goneMs: 1600, noDim: true, lay: hourglass, pos: grainPos, item: grain, before: glass, after: plug },
     // a burning fuse with sparks
@@ -469,7 +469,7 @@
 
   // beads on a winding fuse that burns down from the far end
   function fuse(n, w, h) {
-    const g = grid(n, w, h, 1.9, 2.2, { snake: true, max: 30 });
+    const g = grid(n, w, h, 1.9, 2.2, { snake: true, max: 30, pad: 0.7 });   // pad: room for the wave
     g.pts.forEach(p => p.y += Math.sin(p.x / 40) * g.d * 0.35);
     g.sparks = [];
     return g;
@@ -492,11 +492,13 @@
   // stars scattered over the sky, chained to their nearest neighbour like a constellation
   function stars(n, w, h) {
     const rnd = seeded(n * 31 + 7), slots = Math.ceil(n * 1.8);
-    const cols = Math.max(1, Math.round(Math.sqrt(slots * w / h))), rows = Math.ceil(slots / cols), cw = w / cols, ch = h / rows;
+    const cols = Math.max(1, Math.round(Math.sqrt(slots * w / h))), rows = Math.ceil(slots / cols);
+    const d = Math.min(70, Math.min(w / cols, h / rows) * 0.55), m = d * 0.62;   // a twinkling star reaches 0.6 d from its centre
+    const cw = (w - 2 * m) / cols, ch = (h - 2 * m) / rows;
     const cells = Array.from({ length: cols * rows }, (_, i) => i);
     for (let i = cells.length - 1; i > 0; i--) { const j = rnd() * (i + 1) | 0; [cells[i], cells[j]] = [cells[j], cells[i]]; }
     let left = cells.slice(0, n).map(k => ({
-      x: (k % cols + 0.2 + 0.6 * rnd()) * cw, y: (Math.floor(k / cols) + 0.2 + 0.6 * rnd()) * ch, ph: rnd() * TAU,
+      x: m + (k % cols + 0.2 + 0.6 * rnd()) * cw, y: m + (Math.floor(k / cols) + 0.2 + 0.6 * rnd()) * ch, ph: rnd() * TAU,
     }));
     const pts = [];
     let cur = left.reduce((a, b) => (a.x + a.y < b.x + b.y ? a : b));
@@ -507,7 +509,7 @@
       for (const p of left) { const dd = (p.x - cur.x) ** 2 + (p.y - cur.y) ** 2; if (dd < bd) { bd = dd; best = p; } }
       cur = best;
     }
-    return { pts, d: Math.min(70, Math.min(cw, ch) * 0.55), mid: { x: w / 2, y: h / 2 } };
+    return { pts, d, mid: { x: w / 2, y: h / 2 } };
   }
 
   // a spider hanging on its thread; legs alternate left/right, the lower ones fall off first
