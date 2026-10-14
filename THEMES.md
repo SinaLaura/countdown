@@ -18,7 +18,7 @@ Regeln für alle Themes stehen in [CLAUDE.md](CLAUDE.md). Testen: `?m=10&look=<i
 | 9 | tiles | Dreieck schrumpft |
 | 10 | flower | Blütenblatt fällt ab |
 | 11 | orbit | Mond driftet ins All |
-| 12 | jar | Glas ist am Anfang voll, der Füllstand zeigt die Restzeit; pro Minute lädt sich der oberste Ball auf und springt wie beim Antippen, nur hoch genug, um rauszukommen, und verschwindet (es bleibt nichts liegen, so gewünscht); Antippen = Ball hüpft, kommt aber nie raus |
+| 12 | jar | Glas ist am Anfang voll, der Füllstand zeigt die Restzeit; pro Minute pulsiert der oberste Ball genau wie beim Antippen und springt in der Kugel-Physik hoch, nur hoch genug, um über den Rand zu kommen, fliegt seitlich raus und verschwindet (es bleibt nichts liegen, so gewünscht); Antippen = Ball hüpft, kommt aber nie raus |
 | 13 | caterpillar | Raupe wird kürzer, am Ende Schmetterling; Antippen = sie lächelt kurz |
 | 14 | hourglass | Sandkorn rutscht zum Hals, fällt durch und rollt auf den Haufen (oben entsteht eine Mulde, unten ein Hügel; Körner unregelmäßig); Pause = ein kurzer Schieber (gleiche Farbe und Strichstärke wie das Glas) schließt den Hals, kein Ausblenden |
 | 15 | fuse | Lunte brennt ab, am Ende Knall |

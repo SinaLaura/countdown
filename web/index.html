@@ -985,32 +985,28 @@
       let top = -1;
       for (let j = 0; j < X.min; j++) if (!X.pts[j].out && (top < 0 || X.pts[j].y < X.pts[top].y)) top = j;
       if (top >= 0 && X.pts[top].y < p.y) { const o = X.pts[top]; for (const k of ['x', 'y', 'vx', 'vy']) [p[k], o[k]] = [o[k], p[k]]; }
+      // it is kicked just like a tap: the same pulse, and a jump inside the pile, only high enough to get over the rim
       p.leaving = 1;
+      pulses.set(i, X.now);
+      p.vy = -1.05 * Math.sqrt(2 * 1800 * Math.max(r * 2, p.y - (J.top - r * 2.5)));
+      p.vx = (Math.random() - 0.5) * 120;
     }
     if (g >= 1) return { x: p.x, y: p.y, a: 0 };
-    if (g < 0.3) {   // charging up in the pile: swells, glows and trembles
-      const t = g / 0.3;
-      return { x: p.x + Math.sin(t * 40) * r * 0.08 * t, y: p.y, s: 1 + 0.4 * Math.sin(t * Math.PI / 2), glow: t };
-    }
-    if (p.leaving === 1) {   // launch: the same kind of jump as a tap, just high enough to get over the rim
+    if (p.leaving === 1 && (p.y < J.top - r || g > 0.6)) {
+      // above the rim: it leaves the pile and drifts over the nearer side, clearing the wall on the way down
       p.leaving = 2; p.out = true;
-      const v = Math.sqrt(2 * 1800 * Math.max(r * 2, p.y - (J.top - r * 2.5))), side = p.x < (J.left + J.right) / 2 ? -1 : 1;
-      p.vy = -v;
-      p.vx = side * (Math.abs((side < 0 ? J.left : J.right) - p.x) + r * 1.5) / (v / 1800);
+      const side = p.x < (J.left + J.right) / 2 ? -1 : 1, up = Math.max(0.2, -2 * p.vy / 1800);
+      p.vx = side * Math.max(Math.abs(p.vx), (Math.abs((side < 0 ? J.left : J.right) - p.x) + r * 1.5) / up);
     }
-    const dt = Math.min(0.05, X.dt || 0.016);   // flies on its own, outside the pile's physics
-    p.vy += 1800 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
-    const t = (g - 0.3) / 0.7;
-    return { x: p.x, y: p.y, s: lerp(1.4, 1, Math.min(1, t * 3)), glow: Math.max(0, 1 - t * 2), a: g > 0.8 ? 1 - (g - 0.8) / 0.2 : 1 };
+    if (p.leaving === 2) {   // flies on its own, outside the pile's physics
+      const dt = Math.min(0.05, X.dt || 0.016);
+      p.vy += 1800 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    }
+    return { x: p.x, y: p.y, a: g > 0.8 ? 1 - (g - 0.8) / 0.2 : 1 };
   }
   function jarBall(X, i, x, y, k, q, p, col) {
-    const c = X.c, r = X.d / 2 * k, glow = q && q.glow || 0;
-    if (glow > 0) {
-      c.globalAlpha = glow * 0.3;
-      c.beginPath(); c.arc(x, y, r * 1.6, 0, TAU); c.fill();
-      c.globalAlpha = 1;
-    }
-    c.fillStyle = mix(col, '#ffffff', glow * 0.45);
+    const c = X.c, r = X.d / 2 * k;
+    c.fillStyle = col;
     c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
   }
   function jarTap(G, i) {
