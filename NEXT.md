@@ -14,11 +14,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] Fullscreen should start only after someone presses Start. (fullscreen session, started 12:00)
-
 
 ## Done
 
+- [x] Fullscreen should start only after someone presses Start. (6c49cc7) → http://localhost:8765/ (first tap does nothing, Start goes fullscreen)
 - [x] I like the new physics of the hourglass, but make the bubbles circles. (c745ece) → lab/hourglass-matter.html (open the file directly)
 - [x] Make my app fullscreen by default (854294d) → http://localhost:8765/ (first tap or Start goes fullscreen)
 - [x] The repo https://github.com/SinaLaura/countdown exists now. Bring it online (pushed; Pages workflow 42e67d5 – one click left for you: Settings → Pages → Source „GitHub Actions“) → https://sinalaura.github.io/countdown/
