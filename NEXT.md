@@ -13,10 +13,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] Same for the more advanced themes: a car or duck can leave using the whole screen, the dead spider legs or spikes of the hedgehog can spread more over the bottom of the whole screen, the star-net can go through the whole screen. (session A, started 13:20)
 
 ## Done
 
+- [x] Same for the more advanced themes: a car or duck can leave using the whole screen, the dead spider legs or spikes of the hedgehog can spread more over the bottom of the whole screen, the star-net can go through the whole screen. (73b8ebe) → http://localhost:8765/?m=10&look=ducks (also cars, hedgehog with &passed=6, stars)
 - [x] In general the items should be proportional and fill up the space. That is almost always not the case with the basic boring themes. Add that general instruction to CLAUDE.md and change it for the boring themes: use the full size of the browser (not necessarily filling it completely, but use it). (e578f70) → http://localhost:8765/?m=10&look=snake (offline themes were enlarged too, they're just not in rotation)
 - [x] The caterpillar already gets a laughing mouth when clicked. A similar theme (maybe snake or so) should also react when clicked: smile, look sad, or pull in its feelers. The reaction is chosen randomly each time the theme appears, but stays the same for that whole run (every click in one iteration gives the same reaction). (bc6c6fb) → http://localhost:8765/?m=10&look=snake (tap the snake)
 - [x] Saturn: include an animation for clicking Saturn. (8c36d09) → http://localhost:8765/?m=10&look=orbit (tap the planet or its ring)
