@@ -6,12 +6,11 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] The repo https://github.com/SinaLaura/countdown exists now. Bring it online
 - [ ] Make my app fullscreen by default
 
 ## In progress
 
-
+- [ ] The repo https://github.com/SinaLaura/countdown exists now. Bring it online (push + GitHub Pages for web/, as chosen; session 406605b7, started 13:11)
 ## Done
 
 - [x] Hourglass: let's try to use threejs.org to make the physics for the hourglass better. But just as a test (separate test page, the app itself stays free of external libraries). Open it for me then (2D with Matter.js as chosen; c278d50) → lab/hourglass-matter.html (open the file directly, needs internet for Matter.js)
