@@ -6,15 +6,15 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] Can you make the disappearing ducks take the longest way to leave, not the shortest.
-- [ ] The ducks' movements seem not so smooth anymore since you made the screen dynamically wide.
 
 ## In progress
-- [ ] The snake's eyes should look in the direction as before, but change just for the click and the tongue movement: the right eye should visibly move more to the left, so it looks as if the snake changed its looking direction. (session opus, started 16:55)
+- [ ] Can you make the disappearing ducks take the longest way to leave, not the shortest. (session opus, started 17:05)
+- [ ] The ducks' movements seem not so smooth anymore since you made the screen dynamically wide. (session opus, started 17:05)
 
 
 ## Done
 
+- [x] The snake's eyes should look in the direction as before, but change just for the click and the tongue movement: the right eye should visibly move more to the left, so it looks as if the snake changed its looking direction. (6e9cdf4) → http://localhost:8765/?m=10&look=snake (tap the head)
 - [x] The car puff is great, but it should be directly where the car is, not so far away from it. (248c120) → http://localhost:8765/?m=10&look=cars (tap a car)
 - [x] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available). (9c39041) → http://localhost:8765/ (choose „Pomodoro“ on the start screen; or directly http://localhost:8765/?pomo, ?pomo=1 starts with a break)
 - [x] What is the classical pomodoro technique? Choose that (for the pomodoro task above). (9c39041) → 25 min focus, 5 min break, every 4th break 15 min (the classic allows 15–30)
