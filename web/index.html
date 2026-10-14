@@ -197,6 +197,9 @@
     { name: 'spider', live: true, goneScale: 0.4, goneMs: 1600, lay: spider, pos: legPos, item: leg, before: thread, after: spiderBody },
     // toy cars pottering around, tapping one makes it zoom off a bit, a passed minute drives off screen
     { name: 'cars', live: true, hit: 0.6, goneScale: 1, goneDim: 0, goneMs: 3000, lay: cars, step: carStep, pos: carPos, item: car, tap: carTap },
+    // ducklings swim in line behind their mother, the last one loses track each minute; tap the mother and she looks back
+    { name: 'ducks', live: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: ducks, step: duckStep, pos: duckPos, item: duckling,
+      tap: () => peep(), before: stream, after: motherDuck, bodyTap: duckTap },
   ];
 
   const TAU = Math.PI * 2;
@@ -414,6 +417,40 @@
       pts.push({ x: d + rnd() * Math.max(1, w - 2 * d), y: d + rnd() * Math.max(1, h - 2 * d), a: rnd() * TAU, turn: 0, boost: 0, v: 0 });
     }
     return { pts, d };
+  }
+
+  // a closed loop like a rounded rectangle, inset m from the edges, running clockwise
+  function loopPath(w, h, m) {
+    const x0 = m, y0 = m, x1 = w - m, y1 = h - m, r = Math.max(4, Math.min(x1 - x0, y1 - y0) * 0.25), pts = [];
+    const corner = (cx, cy, a0) => { for (let k = 0; k <= 10; k++) { const a = a0 + k / 10 * Math.PI / 2; pts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r }); } };
+    corner(x1 - r, y0 + r, -Math.PI / 2);
+    corner(x1 - r, y1 - r, 0);
+    corner(x0 + r, y1 - r, Math.PI / 2);
+    corner(x0 + r, y0 + r, Math.PI);
+    pts.push({ x: pts[0].x, y: pts[0].y });
+    const cum = [0];
+    for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+    return { pts, cum, len: cum[cum.length - 1] };
+  }
+  // point and heading at distance s along the loop (wraps around)
+  function pathAt(L, s) {
+    s = (s % L.len + L.len) % L.len;
+    let lo = 0, hi = L.cum.length - 1;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (L.cum[mid] <= s) lo = mid; else hi = mid; }
+    const a = L.pts[lo], b = L.pts[hi], t = (s - L.cum[lo]) / (L.cum[hi] - L.cum[lo] || 1);
+    return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), a: Math.atan2(b.y - a.y, b.x - a.x) };
+  }
+
+  // ducklings in a row behind the mother on a loop around the pond; the first one swims right behind her
+  function ducks(n, w, h) {
+    const first = loopPath(w, h, 30), gap0 = Math.min(50, first.len / (n * 1.3 + 3));
+    const path = loopPath(w, h, Math.max(14, gap0 * 0.8)), gap = Math.min(50, path.len / (n * 1.3 + 3)), d = gap / 1.3;
+    const start = path.len * 0.3, pts = [];
+    for (let i = 0; i < n; i++) {
+      const off = (i + 1.8) * gap, q = pathAt(path, start - off);
+      pts.push({ off, x: q.x, y: q.y });
+    }
+    return { pts, d, duck: { path, gap, s: start, speed: d * 0.9, look: null, mx: 0, my: 0 } };
   }
 
   // a hedgehog facing right; spines in rows over its back, the outer row falls first
@@ -1100,6 +1137,97 @@
     c.fillStyle = mix(col, '#ffffff', 0.7);
     for (const sy of [-1, 1]) { c.beginPath(); c.arc(L * 0.43, sy * B * 0.29, B * 0.09, 0, TAU); c.fill(); }
     c.restore();
+  }
+
+  // ---- ducks ----
+  // while the mother looks back (1.8 s) the whole line stops; she turns around and back again
+  function lookBack(X) {
+    const D = X.geo.duck;
+    if (!D.look || X.still) return 0;
+    const t = (X.now - D.look) / 1800;
+    if (t >= 1) { D.look = null; return 0; }
+    const e = t < 0.25 ? t / 0.25 : t > 0.75 ? (1 - t) / 0.25 : 1;
+    return e * e * (3 - 2 * e);
+  }
+  function duckStep(X, dt) {
+    const D = X.geo.duck;
+    if (!X.still) D.s += D.speed * dt * (1 - lookBack(X));
+    return false;
+  }
+  function duckPos(X, i, g, p) {
+    const D = X.geo.duck;
+    if (g >= 1) return { x: p.x, y: p.y, a: 0 };
+    const wob = X.still ? 0 : Math.sin(X.now / 260 + i * 1.3) * 0.12;
+    if (g <= 0) { const q = pathAt(D.path, D.s - p.off); return { x: q.x, y: q.y, r: q.a + wob }; }
+    // lost: drift away from the line and paddle out of the picture, a bit confused
+    if (!p.lost) { const q = pathAt(D.path, D.s - p.off); p.lost = { x: q.x, y: q.y, h: q.a, out: Math.atan2(q.y - H / 2, q.x - W / 2) }; }
+    const L = p.lost, head = L.h + angDiff(L.h, L.out) * Math.min(1, g * 3), dist = Math.max(W, H) * 0.6 * g * g;
+    const side = Math.sin(g * 18) * X.d * 0.4 * (1 - g);
+    return { x: L.x + Math.cos(L.out) * dist - Math.sin(L.out) * side, y: L.y + Math.sin(L.out) * dist + Math.cos(L.out) * side, r: head + wob * 2 };
+  }
+  // a duck seen from above: tail, body, wing, head with beak and eyes; L is its length
+  function duckShape(c, P, x, y, a, L, col) {
+    c.save(); c.translate(x, y); c.rotate(a);
+    c.fillStyle = col;
+    c.beginPath(); c.moveTo(-L * 0.3, 0); c.lineTo(-L * 0.52, -L * 0.1); c.lineTo(-L * 0.5, L * 0.1); c.closePath(); c.fill();
+    c.beginPath(); c.ellipse(-L * 0.08, 0, L * 0.33, L * 0.25, 0, 0, TAU); c.fill();
+    c.fillStyle = mix(col, P.bg, 0.2);
+    c.beginPath(); c.ellipse(-L * 0.13, 0, L * 0.2, L * 0.15, 0, 0, TAU); c.fill();
+    c.fillStyle = mix(col, '#ffffff', 0.15);
+    c.beginPath(); c.arc(L * 0.28, 0, L * 0.21, 0, TAU); c.fill();
+    c.fillStyle = mix(col, '#ff7a00', 0.8);
+    c.beginPath(); c.ellipse(L * 0.51, 0, L * 0.1, L * 0.075, 0, 0, TAU); c.fill();
+    c.fillStyle = P.bg;
+    for (const s of [-1, 1]) { c.beginPath(); c.arc(L * 0.34, s * L * 0.1, L * 0.045, 0, TAU); c.fill(); }
+    c.restore();
+  }
+  function duckling(X, i, x, y, k, q, p, col) { duckShape(X.c, X.P, x, y, q ? q.r : 0, X.d * k, col); }
+  function stream(X) {
+    const { c, P, d } = X, L = X.geo.duck.path;
+    c.strokeStyle = P.dim; c.lineWidth = d;
+    c.globalAlpha = X.all * 0.45;
+    c.beginPath(); L.pts.forEach(p => c.lineTo(p.x, p.y)); c.closePath(); c.stroke();
+    c.globalAlpha = X.all;
+  }
+  function motherDuck(X) {
+    const { c, P, d } = X, D = X.geo.duck, q = pathAt(D.path, D.s), k = easeBack(X.all);
+    const wob = X.still ? 0 : Math.sin(X.now / 300) * 0.08;
+    D.mx = q.x; D.my = q.y;
+    if (k > 0) duckShape(c, P, q.x, q.y, q.a + Math.PI * lookBack(X) + wob, d * 1.7 * k, mix(P.fg, P.text, 0.3));
+  }
+  function duckTap(G, x, y) {
+    const D = G.duck;
+    if (Math.hypot(x - D.mx, y - D.my) > G.d * 1.1) return false;
+    if (!D.look) D.look = performance.now();
+    quack();
+    return true;
+  }
+  function quack() {
+    if (!audio) return;
+    const a = audio, t = a.currentTime + 0.01;
+    for (const dt of [0, 0.17]) {
+      const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(310, t + dt);
+      o.frequency.exponentialRampToValueAtTime(220, t + dt + 0.12);
+      f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 3;
+      g.gain.setValueAtTime(0.0001, t + dt);
+      g.gain.exponentialRampToValueAtTime(0.12, t + dt + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.13);
+      o.connect(f).connect(g).connect(a.destination);
+      o.start(t + dt); o.stop(t + dt + 0.15);
+    }
+  }
+  function peep() {
+    if (!audio) return;
+    const a = audio, t = a.currentTime + 0.01, o = a.createOscillator(), g = a.createGain();
+    o.frequency.setValueAtTime(2200, t);
+    o.frequency.exponentialRampToValueAtTime(3000, t + 0.06);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.05, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+    o.connect(g).connect(a.destination);
+    o.start(t); o.stop(t + 0.1);
   }
 
   // ---- hedgehog ----
