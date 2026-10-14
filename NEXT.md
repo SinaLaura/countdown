@@ -8,12 +8,12 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 
 ## In progress
-- [ ] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available). (session opus, started 16:20)
-- [ ] What is the classical pomodoro technique? Choose that (for the pomodoro task above). (session opus, started 16:20)
 
 
 ## Done
 
+- [x] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available). (9c39041) → http://localhost:8765/ (choose „Pomodoro“ on the start screen; or directly http://localhost:8765/?pomo, ?pomo=1 starts with a break)
+- [x] What is the classical pomodoro technique? Choose that (for the pomodoro task above). (9c39041) → 25 min focus, 5 min break, every 4th break 15 min (the classic allows 15–30)
 - [x] The snake's tongue looks strange, because her eyes don't move in the same direction. Fix it. (b0532fd) → http://localhost:8765/?m=10&look=snake (tap the head a few times; reload for another reaction)
 - [x] In the browser the snake's tongue is also cut off, because still just the center is used (for every theme). So your latest change to use the full screen seems not to work. (b0532fd) → http://localhost:8765/?m=10&look=snake (in a wide window: the picture now spans the whole width, heading and buttons stay in the middle)
 - [x] After I picked the app icon (no. 2): export it to icon-192, icon-512 and apple-touch-icon in docs/ and bump the cache name in sw.js. (26c6426) → no visual change in the app; icons are docs/icon-512.png etc., source lab/icon-final.svg
