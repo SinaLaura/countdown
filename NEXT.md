@@ -7,6 +7,8 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 ## To do
 
 - [ ] Make the remaining time more consistent with the font and size of the pause button. It's a little too big.
+- [ ] Don't display the end time when using Pomodoro.
+- [ ] Also don't show the end time when you use the mode "Time".
 
 ## In progress
 
