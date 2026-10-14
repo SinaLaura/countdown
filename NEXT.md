@@ -6,6 +6,8 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
+- [ ] Make the remaining time more consistent with the font and size of the pause button. It's a little too big.
+
 ## In progress
 
 ## Done
