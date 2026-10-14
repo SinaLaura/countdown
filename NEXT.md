@@ -8,6 +8,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 - [ ] The slider in the hourglass should be centered
 - [ ] Die Raupe soll kurz einen lächelnden Mund bekommen, wenn man sie anklickt, dann geht es wieder weg
+- [ ] Jar: when a bubble jumps out of the jar on its own, it still looks different than when I tap it myself. Make it look more like tapping it myself
 
 ## In progress
 
