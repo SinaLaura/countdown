@@ -10,10 +10,9 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] For a lot of ducks it looks weak because they are too small. (sonnet-a, started 17:18)
-
 ## Done
 
+- [x] For a lot of ducks it looks weak because they are too small. (9aacd5e) → http://localhost:8765/?m=150&look=ducks (many ducklings now swim on several lanes inside each other; compare &m=10)
 - [x] Remove the "Round and round." text. (870e44c) → http://localhost:8765/ (choose „Pomodoro“: the sentence ends after „break.“)
 - [x] The Pomodoro menu looks good, but above it write a sentence about how the time setting will be then. Make a preview. (8b50b33) → http://localhost:8765/ (choose „Pomodoro“; the sentence changes as you tap − and +)
 
