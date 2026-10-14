@@ -6,7 +6,6 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] When clicking items most themes make a circle around it, which is fine. But for shapes that are not round choose another suitable thing in shape and size that fits the shape and theme.
 - [ ] App icon: draw 3 logo suggestions based on the Ankabuti spider logo (../GoGirls-homepage/images/ankabuti-logo.jpg): (1) spider with a clock-face belly with two hands, no numbers, (2) spider hanging on its thread into a thin partly filled countdown ring, (3) round smiling spider body with tiny legs and a thin arc around it showing time left. Show the three on a localhost page (lab page) so I can pick.
 - [ ] After I picked the app icon: export it to icon-192, icon-512 and apple-touch-icon in docs/ and bump the cache name in sw.js.
 - [ ] (Bigger task for when everything else is finished): make it pomodoro, repeating endlessly. Show a preview of the new look. (The mode without pomodoro should still be available).
@@ -16,6 +15,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## Done
 
+- [x] When clicking items most themes make a circle around it, which is fine. But for shapes that are not round choose another suitable thing in shape and size that fits the shape and theme. (ffdf32a) → http://localhost:8765/?m=10&look=cars (tap a car; also ducks, flower, chocolate, abacus, hedgehog)
 - [x] Same for the more advanced themes: a car or duck can leave using the whole screen, the dead spider legs or spikes of the hedgehog can spread more over the bottom of the whole screen, the star-net can go through the whole screen. (73b8ebe) → http://localhost:8765/?m=10&look=ducks (also cars, hedgehog with &passed=6, stars)
 - [x] In general the items should be proportional and fill up the space. That is almost always not the case with the basic boring themes. Add that general instruction to CLAUDE.md and change it for the boring themes: use the full size of the browser (not necessarily filling it completely, but use it). (e578f70) → http://localhost:8765/?m=10&look=snake (offline themes were enlarged too, they're just not in rotation)
 - [x] The caterpillar already gets a laughing mouth when clicked. A similar theme (maybe snake or so) should also react when clicked: smile, look sad, or pull in its feelers. The reaction is chosen randomly each time the theme appears, but stays the same for that whole run (every click in one iteration gives the same reaction). (bc6c6fb) → http://localhost:8765/?m=10&look=snake (tap the snake)
