@@ -407,7 +407,7 @@
       }
       return out;
     };
-    let cell = 44, top = [], bot = [];
+    let cell = Math.max(44, hh * 0.5), top = [], bot = [];   // as big as the half allows: the sand fills it
     for (; cell > 2; cell -= 0.5) {
       top = tri(cell, cy - 3, cy - hh, true);
       bot = tri(cell, cy + 3, cy + hh, false);
@@ -424,7 +424,7 @@
       const t = top[i] || top[top.length - 1], b = bot[n - 1 - i] || bot[0];
       pts.push({ x: t.x + j(), y: t.y + j(), bx: b.x + j(), by: b.y + j(), sz: 0.82 + rnd() * 0.2, ov: 0.78 + rnd() * 0.2, rot: rnd() * Math.PI, tone: rnd() * 2 - 1 });
     }
-    return { pts, d: cell * 0.92, glass: { cx, cy, hh, gw } };
+    return { pts, d: cell * 0.92, glass: { cx, cy, hh, gw, nk: Math.max(3, gw * 0.03, cell * 0.55) } };   // the neck is as wide as a grain
   }
 
   // beads on a winding fuse that burns down from the far end
@@ -1168,7 +1168,7 @@
   function grainPos(X, i, g, p) {
     if (g <= 0) return null;
     if (g >= 1) return { x: p.bx, y: p.by };
-    const G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), top = G.cy - nk;
+    const G = X.geo.glass, nk = G.nk, top = G.cy - nk;
     const land = Math.max(G.cy + nk * 2, p.by - Math.abs(p.bx - G.cx) * 0.6);   // where it hits the slope of the pile
     if (g < 0.35) { const t = g / 0.35, e = t * t * (3 - 2 * t); return { x: lerp(p.x, G.cx, e), y: lerp(p.y, top, e) }; }
     if (g < 0.75) { const t = (g - 0.35) / 0.4; return { x: G.cx, y: lerp(top, land, t * t) }; }
@@ -1181,7 +1181,7 @@
     c.beginPath(); c.ellipse(x, y, r, r * p.ov, p.rot, 0, TAU); c.fill();
   }
   function glass(X) {
-    const { c, P } = X, G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), l = G.cx - G.gw / 2, r = G.cx + G.gw / 2;
+    const { c, P } = X, G = X.geo.glass, nk = G.nk, l = G.cx - G.gw / 2, r = G.cx + G.gw / 2;
     c.strokeStyle = P.dim; c.lineWidth = 2;
     c.beginPath();
     c.moveTo(l, G.cy - G.hh); c.lineTo(G.cx - nk, G.cy - nk); c.lineTo(G.cx - nk, G.cy + nk); c.lineTo(l, G.cy + G.hh);
@@ -1199,7 +1199,7 @@
     const e = pausedAt ? clamp((Date.now() - pausedAt) / 450) : 1 - X.calm, k = e * e * (3 - 2 * e);
     if (k <= 0) return;
     if (k < 1) X.more = true;
-    const { c, P } = X, G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), len = nk * 5, x = lerp(G.cx + nk * 3, G.cx - len / 2, k);   // comes to rest centred on the neck
+    const { c, P } = X, G = X.geo.glass, nk = G.nk, len = nk * 3, x = lerp(G.cx + nk * 2, G.cx - len / 2, k);   // comes to rest centred on the neck
     c.globalAlpha = Math.min(1, k * 3);
     c.strokeStyle = P.dim; c.lineWidth = 2;
     c.beginPath(); c.moveTo(x, G.cy); c.lineTo(x + len, G.cy); c.stroke();
