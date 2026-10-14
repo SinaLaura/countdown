@@ -446,9 +446,12 @@
     const first = loopPath(w, h, 30), gap0 = Math.min(50, first.len / (n * 1.3 + 3));
     const path = loopPath(w, h, Math.max(14, gap0 * 0.8)), gap = Math.min(50, path.len / (n * 1.3 + 3)), d = gap / 1.3;
     const start = path.len * 0.3, pts = [];
+    // which duckling gets lost when is random (but the same every time for this length)
+    const rnd = seeded(n * 17 + 5), slot = Array.from({ length: n }, (_, i) => i);
+    for (let i = n - 1; i > 0; i--) { const j = rnd() * (i + 1) | 0; [slot[i], slot[j]] = [slot[j], slot[i]]; }
     for (let i = 0; i < n; i++) {
-      const off = (i + 1.8) * gap, q = pathAt(path, start - off);
-      pts.push({ off, x: q.x, y: q.y });
+      const off = (slot[i] + 1.8) * gap, q = pathAt(path, start - off);
+      pts.push({ slot: slot[i], off, x: q.x, y: q.y });
     }
     return { pts, d, duck: { path, gap, s: start, speed: d * 0.9, look: null, mx: 0, my: 0 } };
   }
@@ -1153,20 +1156,47 @@
     return e * e * (3 - 2 * e);
   }
   function duckStep(X, dt) {
-    const D = X.geo.duck;
+    const D = X.geo.duck, d = X.d, P = X.pts;
+    if (X.min < 0) return false;
     if (!X.still) D.s += D.speed * dt * (1 - lookBack(X));
+    const line = [];
+    for (let i = 0; i < P.length; i++) {
+      const p = P[i];
+      if (p.out) continue;
+      if (i < X.min) { line.push(p); continue; }
+      if (!p.lost) {
+        if (X.still || X.gone(i) >= 1) { p.out = true; continue; }   // already gone before this layout
+        const q = pathAt(D.path, D.s - p.off);
+        p.x = q.x; p.y = q.y;
+        p.lost = { t: 0, h: q.a, turn: 0 };
+      }
+      // lost: first it dawdles and looks around, then it slowly wanders off the screen on a curvy route
+      const L = p.lost;
+      L.t += dt;
+      L.turn = Math.max(-1.8, Math.min(1.8, (L.turn + (Math.random() - 0.5) * 10 * dt) * (1 - dt * 0.5)));
+      L.h += L.turn * dt;
+      let v;
+      if (L.t < 4) v = d * 0.35 * (0.3 + 0.7 * Math.pow(Math.sin(L.t * 1.6), 2));
+      else {
+        L.h = turnTo(L.h, Math.atan2(p.y - H / 2, p.x - W / 2), 0.35 * dt);
+        v = d * Math.min(0.9, 0.3 + (L.t - 4) * 0.08);
+      }
+      p.x += Math.cos(L.h) * v * dt;
+      p.y += Math.sin(L.h) * v * dt;
+      if (p.x < -d || p.x > W + d || p.y < -d || p.y > H + d) p.out = true;
+    }
+    // the others close the gap: each one paddles up to the place right behind the duckling in front
+    line.sort((a, b) => a.slot - b.slot);
+    line.forEach((p, r) => { p.off += ((r + 1.8) * D.gap - p.off) * Math.min(1, dt * 0.6); });
     return false;
   }
   function duckPos(X, i, g, p) {
     const D = X.geo.duck;
-    if (g >= 1) return { x: p.x, y: p.y, a: 0 };
+    if (p.out || (g > 0 && !p.lost)) return { x: p.x, y: p.y, a: 0 };
     const wob = X.still ? 0 : Math.sin(X.now / 260 + i * 1.3) * 0.12;
-    if (g <= 0) { const q = pathAt(D.path, D.s - p.off); return { x: q.x, y: q.y, r: q.a + wob }; }
-    // lost: drift away from the line and paddle out of the picture, a bit confused
-    if (!p.lost) { const q = pathAt(D.path, D.s - p.off); p.lost = { x: q.x, y: q.y, h: q.a, out: Math.atan2(q.y - H / 2, q.x - W / 2) }; }
-    const L = p.lost, head = L.h + angDiff(L.h, L.out) * Math.min(1, g * 3), dist = Math.max(W, H) * 0.6 * g * g;
-    const side = Math.sin(g * 18) * X.d * 0.4 * (1 - g);
-    return { x: L.x + Math.cos(L.out) * dist - Math.sin(L.out) * side, y: L.y + Math.sin(L.out) * dist + Math.cos(L.out) * side, r: head + wob * 2 };
+    if (p.lost) return { x: p.x, y: p.y, r: p.lost.h + wob * 1.5 };
+    const q = pathAt(D.path, D.s - p.off);
+    return { x: q.x, y: q.y, r: q.a + wob };
   }
   // a duck seen from above: tail, body, wing, head with beak and eyes; L is its length
   function duckShape(c, P, x, y, a, L, col) {
