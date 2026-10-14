@@ -8,6 +8,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 - [ ] Disable zoom in.
 - [ ] Enable changing the time of the pomodoro.
+- [ ] In some themes the items are cut off on top, for example when the time is very long.
 
 ## In progress
 
