@@ -6,6 +6,8 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
+- [ ] Don't implement, idea to discuss: different calming short sounds when you click on the items of the boring themes (just them)
+
 ## In progress
 
 - [ ] For a lot of ducks it looks weak because they are too small. (sonnet-a, started 17:18)
