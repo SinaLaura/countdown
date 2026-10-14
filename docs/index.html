@@ -586,18 +586,40 @@
   }
 
   // ducklings in a row behind the mother on a loop around the pond; the first one swims right behind her
+  // for many ducklings the pond gets more loops inside each other (lanes), so the ducks can stay big
   function ducks(n, w, h) {
-    const first = loopPath(w, h, 30), gap0 = Math.min(110, first.len / (n * 1.3 + 3));
-    const path = loopPath(w, h, Math.max(14, gap0 * 0.8)), gap = Math.min(110, path.len / (n * 1.3 + 3)), d = gap / 1.3;
-    const start = path.len * 0.3, pts = [];
+    const lanesFor = d => {
+      const m0 = Math.max(14, d * 0.8), lim = Math.min(w, h) / 2 - d * 0.7, out = [];
+      for (let m = m0; m <= lim || !out.length; m += d * 1.3) out.push(loopPath(w, h, m));
+      return out;
+    };
+    // the biggest duck that still leaves room for all of them (some slack, so the lanes don't look jammed)
+    let d = 84, paths = lanesFor(d), caps;
+    for (; d > 3; d -= 0.5) {
+      paths = lanesFor(d);
+      caps = paths.map((p, j) => Math.max(0, Math.floor(p.len / (d * 1.3)) - (j ? 0 : 3)));
+      if (caps.reduce((a, b) => a + b, 0) >= n * 1.15 + 1) break;
+    }
+    const total = caps.reduce((a, b) => a + b, 0) || 1;
+    // ducks per lane in proportion to its room
+    const cnt = caps.map(cp => Math.min(cp, Math.floor(n * cp / total)));
+    for (let rest = n - cnt.reduce((a, b) => a + b, 0), j = 0; rest > 0; j = (j + 1) % cnt.length) if (cnt[j] < caps[j] || caps.every((cp, k) => cnt[k] >= cp)) { cnt[j]++; rest--; }
+    const lane = [];   // lane of each slot
+    cnt.forEach((c, j) => { for (let k = 0; k < c; k++) lane.push(j); });
+    const first = [];   // first slot of each lane
+    cnt.forEach((c, j) => first.push(j ? first[j - 1] + cnt[j - 1] : 0));
+    // spacing along each lane: as even as the room allows (lane 0 leaves space for the mother)
+    const gaps = paths.map((p, j) => Math.min(d * 1.3 * 1.5, p.len / ((cnt[j] || 1) + (j ? 0 : 2.8))));
+    const phase = paths.map((p, j) => j * 0.37 * gaps[j]);   // lanes don't line up with each other
+    const start = paths[0].len * 0.3, pts = [];
     // which duckling gets lost when is random (but the same every time for this length)
     const rnd = seeded(n * 17 + 5), slot = Array.from({ length: n }, (_, i) => i);
     for (let i = n - 1; i > 0; i--) { const j = rnd() * (i + 1) | 0; [slot[i], slot[j]] = [slot[j], slot[i]]; }
     for (let i = 0; i < n; i++) {
-      const off = (slot[i] + 1.8) * gap, q = pathAt(path, start - off);
-      pts.push({ slot: slot[i], off, x: q.x, y: q.y });
+      const j = lane[slot[i]], off = (slot[i] - first[j] + (j ? 0.5 : 1.8)) * gaps[j] + phase[j], q = pathAt(paths[j], start - off);
+      pts.push({ slot: slot[i], lane: j, off, x: q.x, y: q.y });
     }
-    return { pts, d, duck: { path, gap, s: start, speed: d * 0.9, look: null, mx: 0, my: 0 } };
+    return { pts, d, duck: { path: paths[0], paths, gaps, phase, s: start, speed: d * 0.9, look: null, mx: 0, my: 0 } };
   }
 
   // a hedgehog facing right; spines in rows over its back, the outer row falls first
@@ -1752,7 +1774,7 @@
       if (i < X.min) { line.push(p); continue; }
       if (!p.lost) {
         if (X.still || X.gone(i) >= 1) { p.out = true; continue; }   // already gone before this layout
-        const q = pathAt(D.path, D.s - p.off);
+        const q = pathAt(D.paths[p.lane], D.s - p.off);
         p.x = q.x; p.y = q.y;
         // it leaves by the longest way: across the pond to the far side
         const far = [[p.x, -d * 2, p.y], [W - p.x, W + d * 2, p.y], [p.y, p.x, -d * 2], [H - p.y, p.x, H + d * 2]].sort((a, b) => b[0] - a[0])[0];
@@ -1782,7 +1804,11 @@
     }
     // the others close the gap: each one paddles up to the place right behind the duckling in front
     line.sort((a, b) => a.slot - b.slot);
-    line.forEach((p, r) => { p.off += ((r + 1.8) * D.gap - p.off) * Math.min(1, dt * 0.6); });
+    const rank = D.paths.map(() => 0);
+    line.forEach(p => {
+      const j = p.lane, goal = (rank[j]++ + (j ? 0.5 : 1.8)) * D.gaps[j] + D.phase[j];
+      p.off += (goal - p.off) * Math.min(1, dt * 0.6);
+    });
     return false;
   }
   function duckPos(X, i, g, p) {
@@ -1790,7 +1816,7 @@
     if (p.out || (g > 0 && !p.lost)) return { x: p.x, y: p.y, a: 0 };
     const wob = X.still ? 0 : Math.sin(X.t * 1000 / 260 + i * 1.3) * 0.12;
     if (p.lost) return { x: p.x, y: p.y, r: p.lost.h + wob * 1.5 };
-    const q = pathAt(D.path, D.s - p.off);
+    const q = pathAt(D.paths[p.lane], D.s - p.off);
     return { x: q.x, y: q.y, r: q.a + wob };
   }
   // a duck seen from above: tail, body, wing, head with beak and eyes; L is its length
