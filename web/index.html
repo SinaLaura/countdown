@@ -202,7 +202,7 @@
     // ducklings swim in line behind their mother, the last one loses track each minute; tap the mother and she looks back
     { name: 'ducks', live: true, goneScale: 1, goneDim: 0, goneMs: 3500, lay: ducks, step: duckStep, pos: duckPos, item: duckling,
       tap: () => peep(), after: motherDuck, bodyTap: duckTap },
-    // a thermometer that gets colder each minute; segments freeze onto the glass, the temperature replaces the headline
+    // a thermometer that gets colder each minute; the top segment cools off and fades, the temperature replaces the headline
     { name: 'thermometer', live: true, noHead: true, noDim: true, goneScale: 1, goneDim: 0, goneMs: 1800, goneLinear: true, endArt: 'shatter',
       lay: thermometer, pos: freeze, item: segment, before: thermoGlass, after: beanie, bodyTap: thermoTap },
   ];
@@ -527,21 +527,16 @@
     return { pts, d: s0, order, cinema: { sx, sy, sw, sh } };
   }
 
-  // a thermometer: one segment of the column per minute, the top one cools off first and freezes onto the glass
+  // a thermometer: one segment of the column per minute, the top one cools off and fades out first
   function thermometer(n, w, h) {
     const tw = Math.min(w * 0.14, 54), br = tw * 0.95, cx = w * 0.36;
     const top = Math.max(16, h * 0.05) + tw * 1.5, by = h - br - 10, bottom = by - br * 0.7;   // room for the hat
-    const sh = (bottom - top) / n, sw = tw * 0.6, rnd = seeded(n * 29 + 3), pts = [];
-    const cs = Math.max(5, Math.min(sh * 1.4, tw * 0.42));   // size of an ice crystal
+    const sh = (bottom - top) / n, sw = tw * 0.6, pts = [];
     for (let i = 0; i < n; i++) {
-      const y = bottom - (i + 0.5) * sh, side = i % 2 ? -1 : 1;
-      pts.push({
-        x: cx, y, sh, sw, hr: Math.max(sh * 0.6, sw * 0.5), ring: Math.max(sh, sw) * 0.6,
-        // frost spot on the outside of the glass, near where the segment was
-        fx: cx + side * (tw / 2 + cs * 0.7 + rnd() * tw * 0.7), fy: y + (rnd() - 0.5) * sh, fr: rnd() * TAU,
-      });
+      const y = bottom - (i + 0.5) * sh;
+      pts.push({ x: cx, y, sh, sw, hr: Math.max(sh * 0.6, sw * 0.5), ring: Math.max(sh, sw) * 0.6 });
     }
-    return { pts, d: Math.max(sh, 4), therm: { cx, tw, br, by, top, bottom, cs } };
+    return { pts, d: Math.max(sh, 4), therm: { cx, tw, br, by, top, bottom } };
   }
 
   function bag(n) {
@@ -1590,27 +1585,11 @@
   function freeze(X, i, g, p) {
     const fl = thermoFlare(X) * (i < X.min ? 1 : 0);
     if (g <= 0) return fl ? { x: p.x, y: p.y - fl * p.sh * 0.8 } : null;
-    if (g < 0.4) return { x: p.x, y: p.y, cool: g / 0.4 };   // the segment cools down in place
-    const t = (g - 0.4) / 0.6;                               // then drifts out onto the glass as ice
-    return { x: lerp(p.x, p.fx, t), y: lerp(p.y, p.fy, t), cool: 1, ice: t };
-  }
-  function crystal(c, x, y, r, rot) {
-    c.beginPath();
-    for (let k = 0; k < 6; k++) {   // six arms, each with a little V of branches
-      const a = rot + k * Math.PI / 3, bx = x + Math.cos(a) * r * 0.6, by = y + Math.sin(a) * r * 0.6;
-      c.moveTo(x, y); c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
-      for (const s of [-0.7, 0.7]) { c.moveTo(bx, by); c.lineTo(bx + Math.cos(a + s) * r * 0.3, by + Math.sin(a + s) * r * 0.3); }
-    }
-    c.stroke();
+    if (g < 0.5) return { x: p.x, y: p.y, cool: g / 0.5 };   // the segment cools down in place
+    return { x: p.x, y: p.y, cool: 1, a: g >= 1 ? 0 : 1 - (g - 0.5) / 0.5 };   // then fades out of the column
   }
   function segment(X, i, x, y, k, q, p) {
-    const c = X.c, T = X.geo.therm, f = X.n ? X.min / X.n : 0, cool = q && q.cool || 0, ice = q && q.ice || 0;
-    if (ice > 0) {
-      const r = lerp(Math.min(p.sw, p.sh) / 2, T.cs / 2, ice) * k;
-      c.strokeStyle = mix(ICE, X.P.bg, 0.25 * ice); c.lineWidth = Math.max(1, r * 0.22); c.lineCap = 'round';
-      crystal(c, x, y, r, p.fr * ice);
-      return;
-    }
+    const c = X.c, f = X.n ? X.min / X.n : 0, cool = q && q.cool || 0;
     const hot = mix(heat(f), mix(heat(f), '#ffffff', 0.35), thermoFlare(X));
     c.fillStyle = mix(hot, ICE, cool);
     const sh = p.sh * (p.sh > 6 ? 0.86 : 1) * k * (1 - 0.4 * cool), sw = p.sw * k * (1 - 0.4 * cool);

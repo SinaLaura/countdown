@@ -30,7 +30,7 @@ Regeln für alle Themes stehen in [CLAUDE.md](CLAUDE.md). Testen: `?m=10&look=<i
 | 21 | spider | Bein fällt ab; Kopf antippen = federt am Faden, kneift glücklich die Augen zu; Pause = zieht die Beine ein |
 | 22 | cars | Spielzeugauto fährt aus dem Bild (Antippen = kurz Gas geben, Pause = einparken) |
 | 23 | ducks | Ein zufälliges Küken verliert langsam den Anschluss und paddelt auf Umwegen davon, die anderen schließen auf; Mama antippen = sie dreht sich um und quakt; Pause = Reihe stoppt, Mama schaut zurück |
-| 24 | thermometer | Oberstes Segment kühlt ab und friert als Eiskristall ans Glas, es schneit immer stärker; Temperatur („12°“) ersetzt die Überschrift; Kugel antippen = Säule flackert auf; Pause = Strickmütze; Ende = zerspringt in Eissplitter |
+| 24 | thermometer | Oberstes Segment kühlt ab und verblasst, die Säule zeigt die vergangene Zeit (kein Frost am Glas, so gewünscht); es schneit immer stärker; Temperatur („12°“) ersetzt die Überschrift; Kugel antippen = Säule flackert auf; Pause = Strickmütze; Ende = zerspringt in Eissplitter |
 
 ## Offene Ideen
 
