@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App icon suggestions</title>
+<style>
+  body { font: 16px system-ui, sans-serif; margin: 0; padding: 24px 16px; background: #f3f1ec; color: #2b2b3a; }
+  h1 { font-size: 20px; margin: 0 0 20px; }
+  .row { display: flex; flex-wrap: wrap; gap: 28px; }
+  figure { margin: 0; }
+  figure svg { width: 260px; height: 260px; display: block; border-radius: 22.5%; box-shadow: 0 2px 12px rgba(0,0,0,.18); }
+  figcaption { margin-top: 8px; font-size: 14px; max-width: 260px; }
+  .small { display: flex; gap: 10px; margin-top: 8px; align-items: end; }
+  .small svg { width: 60px; height: 60px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+  .small svg + svg { width: 40px; height: 40px; }
+</style>
+</head>
+<body>
+<h1>App icon suggestions</h1>
+
+<!-- shared parts: the eyes and cheeks of the Ankabuti spider, and its legs (right side; the left side is mirrored) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="face">
+      <circle cx="-34" cy="0" r="25" fill="#fff"/><circle cx="34" cy="0" r="25" fill="#fff"/>
+      <circle cx="-30" cy="2" r="15" fill="#23232f"/><circle cx="30" cy="2" r="15" fill="#23232f"/>
+      <circle cx="-25" cy="-4" r="6" fill="#fff"/><circle cx="35" cy="-4" r="6" fill="#fff"/>
+      <ellipse cx="-62" cy="30" rx="15" ry="10" fill="#f2a29b"/><ellipse cx="62" cy="30" rx="15" ry="10" fill="#f2a29b"/>
+      <path d="M-14 34 Q0 50 14 34" fill="none" stroke="#23232f" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <g id="legs" fill="none" stroke="#3a3a4c" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-4 -20 Q110 -120 190 -60"/>
+      <path d="M0 10 Q130 -60 204 40"/>
+      <path d="M0 40 Q120 60 188 150"/>
+      <path d="M-10 66 Q80 120 130 200"/>
+    </g>
+    <g id="legsS" fill="none" stroke="#3a3a4c" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 -30 Q60 -70 100 -35"/>
+      <path d="M0 0 Q70 -20 112 25"/>
+      <path d="M0 30 Q65 30 98 85"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="row">
+
+<!-- 1: spider with a clock-face belly, two hands, no numbers -->
+<figure>
+  <svg viewBox="0 0 512 512" role="img" aria-label="Spider with a clock-face belly">
+    <rect width="512" height="512" fill="#f6f3ec"/>
+    <path d="M256 0 V196" stroke="#3a3a4c" stroke-width="10"/>
+    <g transform="translate(256 322) scale(.68)"><use href="#legs"/><use href="#legs" transform="scale(-1 1)"/></g>
+    <circle cx="256" cy="330" r="118" fill="#3a3a4c"/>
+    <circle cx="256" cy="330" r="92" fill="#f6f3ec"/>
+    <path d="M256 330 V298 M256 330 L292 352" stroke="#3a3a4c" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <circle cx="256" cy="330" r="10" fill="#3cc8d4"/>
+    <circle cx="256" cy="212" r="76" fill="#3a3a4c"/>
+    <g transform="translate(256 214) scale(.78)"><use href="#face"/></g>
+  </svg>
+  <figcaption><b>1</b> · spider with a clock-face belly, two hands, no numbers</figcaption>
+</figure>
+
+<!-- 2: spider hanging on its thread into a thin, partly filled countdown ring -->
+<figure>
+  <svg viewBox="0 0 512 512" role="img" aria-label="Spider hanging into a countdown ring">
+    <rect width="512" height="512" fill="#f6f3ec"/>
+    <circle cx="256" cy="256" r="218" fill="none" stroke="#e1ddd2" stroke-width="14"/>
+    <circle cx="256" cy="256" r="218" fill="none" stroke="#3cc8d4" stroke-width="14" stroke-linecap="round"
+            stroke-dasharray="958 1370" transform="rotate(-90 256 256)"/>
+    <path d="M256 38 V210" stroke="#3a3a4c" stroke-width="8"/>
+    <g transform="translate(256 292) scale(.62)"><use href="#legs"/><use href="#legs" transform="scale(-1 1)"/></g>
+    <circle cx="256" cy="292" r="78" fill="#3a3a4c"/>
+    <g transform="translate(256 288) scale(.78)"><use href="#face"/></g>
+  </svg>
+  <figcaption><b>2</b> · spider hanging on its thread into a thin ring, about 70 % left</figcaption>
+</figure>
+
+<!-- 3: round smiling body, tiny legs, thin arc showing the time left -->
+<figure>
+  <svg viewBox="0 0 512 512" role="img" aria-label="Round spider with a time arc">
+    <rect width="512" height="512" fill="#f6f3ec"/>
+    <path d="M256 38 A218 218 0 1 1 78.4 129.4" fill="none" stroke="#3cc8d4" stroke-width="14" stroke-linecap="round"/>
+    <g transform="translate(256 268) scale(1.5)"><use href="#legsS"/><use href="#legsS" transform="scale(-1 1)"/></g>
+    <circle cx="256" cy="268" r="130" fill="#3a3a4c"/>
+    <g transform="translate(256 262) scale(1.2)"><use href="#face"/></g>
+  </svg>
+  <figcaption><b>3</b> · round smiling body, tiny legs, a thin arc around it showing the time left</figcaption>
+</figure>
+
+</div>
+</body>
+</html>
