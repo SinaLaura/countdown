@@ -38,6 +38,7 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 ## Ende
 - Groß steht das Label in Großbuchstaben mit „!“ (ohne Label „DONE!“), dazu der Button „Exit“.
 - Der Endton ist zufällig futuristisch, kein Piepen.
+- Das letzte Item geht wie alle anderen mit seiner Animation ab, während der Endton spielt. Erst danach (je nach `goneMs`, max. 3 s) kommt der End-Bildschirm.
 - Ein Theme darf eine End-Animation haben (`endArt`, z.B. Schmetterling nach der Raupe, Knall nach der Lunte).
 
 ## Barrierefreiheit

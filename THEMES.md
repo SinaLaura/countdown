@@ -20,16 +20,16 @@ Regeln für alle Themes stehen in [CLAUDE.md](CLAUDE.md). Testen: `?m=10&look=<i
 | 11 | orbit | Mond driftet ins All |
 | 12 | jar | Ball platzt (Bälle mit Schwerkraft, Antippen schubst) |
 | 13 | caterpillar | Raupe wird kürzer, am Ende Schmetterling |
-| 14 | hourglass | Sandkorn fällt nach unten |
+| 14 | hourglass | Sandkorn fällt nach unten (Pause = ein Stab schiebt sich in den Hals) |
 | 15 | fuse | Lunte brennt ab, am Ende Knall |
 | 16 | chocolate | Stück bricht ab |
 | 17 | abacus | Perle rutscht nach rechts |
 | 18 | stars | Stern im Sternbild erlischt |
-| 19 | hedgehog | Stachel fällt ab, er wird rot; Körper antippen = hüpfen/schütteln |
+| 19 | hedgehog | Stachel fällt ab, er wird rot; Körper antippen = hüpfen/schütteln; Pause = schläft (Augen zu) |
 | 20 | cinema | Gast verlässt den Saal, die Zeit läuft auf der Leinwand |
-| 21 | spider | Bein fällt ab |
+| 21 | spider | Bein fällt ab; Kopf antippen = federt am Faden, kneift glücklich die Augen zu; Pause = zieht die Beine ein |
 | 22 | cars | Spielzeugauto fährt aus dem Bild (Antippen = kurz Gas geben, Pause = einparken) |
-| 23 | ducks | Entenküken verliert den Anschluss und paddelt davon |
+| 23 | ducks | Ein zufälliges Küken verliert langsam den Anschluss und paddelt auf Umwegen davon, die anderen schließen auf; Mama antippen = sie dreht sich um und quakt; Pause = Reihe stoppt, Mama schaut zurück |
 
 ## Offene Ideen
 
