@@ -1178,7 +1178,7 @@
     const e = pausedAt ? clamp((Date.now() - pausedAt) / 450) : 1 - X.calm, k = e * e * (3 - 2 * e);
     if (k <= 0) return;
     if (k < 1) X.more = true;
-    const { c, P } = X, G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), len = nk * 5, x = lerp(G.cx + nk * 3, G.cx - nk * 1.6, k);
+    const { c, P } = X, G = X.geo.glass, nk = Math.max(3, G.gw * 0.03), len = nk * 5, x = lerp(G.cx + nk * 3, G.cx - len / 2, k);   // comes to rest centred on the neck
     c.globalAlpha = Math.min(1, k * 3);
     c.strokeStyle = P.dim; c.lineWidth = 2;
     c.beginPath(); c.moveTo(x, G.cy); c.lineTo(x + len, G.cy); c.stroke();
