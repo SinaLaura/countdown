@@ -9,8 +9,9 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] Jar: the slider should be the same color as the jar's line (session 406605b7, started 12:31)
-- [ ] Jar: the line should not be bigger in size (session 406605b7, started 12:31)
 
 ## Done
+
+- [x] Jar (meant: hourglass): the slider should be the same color as the jar's line (91804c9)
+- [x] Jar (meant: hourglass): the line should not be bigger in size (91804c9)
 
