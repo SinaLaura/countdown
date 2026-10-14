@@ -6,7 +6,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-
+- [ ] The car puff is great, but it should be directly where the car is, not so far away from it.
 ## In progress
 
 
