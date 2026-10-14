@@ -8,9 +8,9 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] The Pomodoro menu looks good, but above it write a sentence about how the time setting will be then. Make a preview. (sonnet-a, started 17:20)
-
 ## Done
+
+- [x] The Pomodoro menu looks good, but above it write a sentence about how the time setting will be then. Make a preview. (8b50b33) → http://localhost:8765/ (choose „Pomodoro“; the sentence changes as you tap − and +)
 
 - [x] I don't like the display for Pomodoro. Rethink it (but it should stay consistent with the Minutes and Time menu). (2743c2b) → http://localhost:8765/ (choose „Pomodoro“: Focus, Break, Long break, each with − number + like Minutes)
 - [x] When the browser or app is not visibly open, does the countdown still continue (as it should)? Will it still ring? (065447d) → http://localhost:8765/?m=1 (switch to another tab and wait: it ends and rings on time; on a phone a sleeping web page only catches up when opened, the store app notifies)
