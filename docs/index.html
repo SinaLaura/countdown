@@ -1901,10 +1901,18 @@
   // (WebAudio, so the phone's silent switch mutes them like the end tone)
   const CALM = [392, 440, 523.25, 587.33, 659.25, 783.99, 880, 1046.5];
   let lastCalm = -1;
-  function tapChime(kind, again) {
+  // a first tap creates the audio context while the browser may not count the tap as a gesture yet (mouse: only once the button
+  // went down), so the note waits and is played the moment the context really runs (or when the tap ends)
+  let chimeWait = null;
+  function playWaiting() {
+    if (!chimeWait || !audio) return;
+    audio.resume().then(() => { const k = chimeWait; chimeWait = null; if (k && audio.state === 'running' && performance.now() - k.at < 1500) tapChime(k.kind); }).catch(() => {});
+  }
+  document.addEventListener('pointerup', playWaiting);
+  document.addEventListener('click', playWaiting);
+  function tapChime(kind) {
     if (!audio || pausedAt) return;   // quiet while paused
-    // the very first tap creates the audio context, which starts suspended: play as soon as it runs
-    if (audio.state !== 'running') { if (!again) audio.resume().then(() => tapChime(kind, true)).catch(() => {}); return; }
+    if (audio.state !== 'running') { chimeWait = { kind, at: performance.now() }; playWaiting(); return; }
     const a = audio, t = a.currentTime + 0.01;
     let k; do k = Math.floor(Math.random() * CALM.length); while (k === lastCalm);
     lastCalm = k;
@@ -1951,7 +1959,7 @@
   }
   function hogTap(G, x, y) {
     const Hg = G.hog, ex = (x - Hg.cx - Hg.R * 0.1) / (Hg.R * 1.2), ey = (y - Hg.cy) / (Hg.ry * 1.1);
-    if (ex * ex + ey * ey > 1) return false;
+    if (ex * ex + ey * ey > 1 || pausedAt) return false;   // asleep while paused: no hopping
     Hg.react = { t0: performance.now(), kind: Math.random() < 0.5 ? 0 : 1 };
     squeak();
     return true;
