@@ -40,14 +40,33 @@
   }
   const say = t => { cap.textContent = t; cap.style.opacity = t ? 1 : 0; };
   let run = 0;
+  // find real empty background in the running app: the spot whose surroundings are all background colour (items, decoration, text are not)
+  function findVoid() {
+    try {
+      const d = app.contentDocument, cv = d.getElementById('canvas'), r = cv.getBoundingClientRect(), k = cv.width / r.width;
+      const g = cv.getContext('2d'), bg = g.getImageData(2, 2, 1, 1).data;
+      const same = (x, y, rad) => {
+        const px = g.getImageData(Math.max(0, (x - rad) * k), Math.max(0, (y - rad) * k), rad * 2 * k, rad * 2 * k).data;
+        for (let i = 0; i < px.length; i += 4) if (Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]) > 3) return false;
+        return true;
+      };
+      let best = null;
+      for (let rad = 44; rad >= 14 && !best; rad -= 6)
+        for (let y = r.top + 120; y < r.bottom - 100 && !best; y += 12)
+          for (let x = r.left + 40; x < r.right - 40; x += 12)
+            if (same(x - r.left, y - r.top, rad)) { best = [x, y]; break; }
+      return best;
+    } catch (e) { return null; }
+  }
   async function demo() {
     const me = ++run, ok = () => me === run;
     while (ok()) {
       say(''); fin.style.opacity = 0; fin.style.transform = 'translate(200px, 700px)';
       await wait(1800); if (!ok()) return;
       fin.style.opacity = 1;
-      await move(190, 440); if (!ok()) return;
-      say('tap the void'); await tap(190, 440); await wait(1400); if (!ok()) return;
+      const [vx, vy] = findVoid() || [190, 440];
+      await move(vx, vy); if (!ok()) return;
+      say('tap the void'); await tap(vx, vy); await wait(1400); if (!ok()) return;
       say(''); fin.style.opacity = 0; await wait(1500);
     }
   }
