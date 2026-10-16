@@ -6,13 +6,14 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] Don't implement, idea to discuss: different calming short sounds when you click on the items of the boring themes (just them)
 - [ ] When you use the app the first time, can you demonstrate a finger tapping on the screen to change the timebits? Show a preview on localhost before implementing.
 
 ## In progress
 
+
 ## Done
 
+- [x] Calming short sounds when clicking items of the boring themes (just them): soft, a bit futuristic, WebAudio so the silent switch is respected (faa695a) → http://localhost:8765/?m=10&look=snake (also spiral, clock, honey, rings, diamonds; tap an item)
 - [x] For a lot of ducks it looks weak because they are too small. (06a740d) → http://localhost:8765/?m=60&look=ducks (many ducklings follow their mother on one winding path over the whole pond; try &m=25, &m=150, compare &m=10)
 - [x] Remove the "Round and round." text. (870e44c) → http://localhost:8765/ (choose „Pomodoro“: the sentence ends after „break.“)
 - [x] The Pomodoro menu looks good, but above it write a sentence about how the time setting will be then. Make a preview. (8b50b33) → http://localhost:8765/ (choose „Pomodoro“; the sentence changes as you tap − and +)
