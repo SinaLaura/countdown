@@ -13,5 +13,5 @@ Steps:
 2. Turn the task into one line `- [ ] <task>`. Keep the user's wording and language; only fix obvious typos. If it contains several separate wishes, make one line per wish.
 3. If the text starts with `!`, drop the `!` and insert the line(s) at the top of **To do** (urgent). Otherwise add them at the end of **To do**.
 4. Remove an empty placeholder line `- [ ] ` if there is one. Change nothing else in the file.
-5. Commit only this file right away: `git add NEXT.md && git commit -m "NEXT.md: add <short task>"` (with the attribution lines the session requires). No `git add -A`.
+5. Don't commit. All sessions share this folder, so the new line is visible right away; it goes into the next commit of `NEXT.md` (usually the claim by `/next`).
 6. Answer in one or two short lines: what was added and at which position. Do not start working on it; `/next` does that.
