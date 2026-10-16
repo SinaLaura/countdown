@@ -7,6 +7,7 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 ## To do
 
 - [ ] Don't implement, idea to discuss: different calming short sounds when you click on the items of the boring themes (just them)
+- [ ] When you use the app the first time, can you demonstrate a finger tapping on the screen to change the timebits? Show a preview on localhost before implementing.
 
 ## In progress
 
