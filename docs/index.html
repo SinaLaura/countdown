@@ -1870,7 +1870,7 @@
     return true;
   }
   function quack() {
-    if (!audio) return;
+    if (!audio || pausedAt) return;   // quiet while paused
     const a = audio, t = a.currentTime + 0.01;
     for (const dt of [0, 0.17]) {
       const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
@@ -1886,7 +1886,7 @@
     }
   }
   function peep() {
-    if (!audio) return;
+    if (!audio || pausedAt) return;   // quiet while paused
     const a = audio, t = a.currentTime + 0.01, o = a.createOscillator(), g = a.createGain();
     o.frequency.setValueAtTime(2200, t);
     o.frequency.exponentialRampToValueAtTime(3000, t + 0.06);
@@ -1901,8 +1901,10 @@
   // (WebAudio, so the phone's silent switch mutes them like the end tone)
   const CALM = [392, 440, 523.25, 587.33, 659.25, 783.99, 880, 1046.5];
   let lastCalm = -1;
-  function tapChime(kind) {
-    if (!audio || audio.state === 'suspended') return;
+  function tapChime(kind, again) {
+    if (!audio || pausedAt) return;   // quiet while paused
+    // the very first tap creates the audio context, which starts suspended: play as soon as it runs
+    if (audio.state !== 'running') { if (!again) audio.resume().then(() => tapChime(kind, true)).catch(() => {}); return; }
     const a = audio, t = a.currentTime + 0.01;
     let k; do k = Math.floor(Math.random() * CALM.length); while (k === lastCalm);
     lastCalm = k;
@@ -1955,7 +1957,7 @@
     return true;
   }
   function squeak() {
-    if (!audio) return;
+    if (!audio || pausedAt) return;   // quiet while paused
     const a = audio, t = a.currentTime + 0.01, o = a.createOscillator(), g = a.createGain();
     o.frequency.setValueAtTime(900, t);
     o.frequency.exponentialRampToValueAtTime(1700, t + 0.08);
