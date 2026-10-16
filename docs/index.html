@@ -211,13 +211,13 @@
   const ALL_MODES = [
     { name: 'dots',     off: true, shape: 'circle',  lay: (n, w, h) => grid(n, w, h, 1.6, 1.6) },
     { name: 'squares',  off: true, shape: 'square',  lay: (n, w, h) => grid(n, w, h, 1.5, 1.5) },
-    { name: 'snake',    shape: 'circle',  body: 0.42, eyes: true, glance: snakeGlance, lay: (n, w, h) => grid(n, w, h, 1.45, 1.45, { snake: true, pad: 1.5 }), after: snakeFace, tap: snakeTap },
-    { name: 'spiral',   shape: 'circle',  guide: 'path', lay: spiral },
-    { name: 'clock',    shape: 'circle',  guide: 'ring', lay: ring },
+    { name: 'snake', snd: 'snake',    shape: 'circle',  body: 0.42, eyes: true, glance: snakeGlance, lay: (n, w, h) => grid(n, w, h, 1.45, 1.45, { snake: true, pad: 1.5 }), after: snakeFace, tap: snakeTap },
+    { name: 'spiral', snd: 'spiral',   shape: 'circle',  guide: 'path', lay: spiral },
+    { name: 'clock', snd: 'clock',    shape: 'circle',  guide: 'ring', lay: ring },
     { name: 'bars',     off: true, shape: 'bar',     lay: (n, w, h) => grid(n, w, h, 1.8, 3.6, { max: 65 }) },
-    { name: 'honey',    shape: 'hex',     halo: X => ({ poly: starPoly(6, X.d * 0.6, X.d * 0.6) }), lay: (n, w, h) => grid(n, w, h, 0.95, 0.82, { offset: true, max: 140 }) },
-    { name: 'rings',    shape: 'ring',    lay: (n, w, h) => grid(n, w, h, 1.5, 1.3, { offset: true }) },
-    { name: 'diamonds', shape: 'diamond', hit: 0.4, lay: (n, w, h) => grid(n, w, h, 1.1, 0.55, { offset: true, max: 170 }) },
+    { name: 'honey', snd: 'honey',    shape: 'hex',     halo: X => ({ poly: starPoly(6, X.d * 0.6, X.d * 0.6) }), lay: (n, w, h) => grid(n, w, h, 0.95, 0.82, { offset: true, max: 140 }) },
+    { name: 'rings', snd: 'rings',    shape: 'ring',    lay: (n, w, h) => grid(n, w, h, 1.5, 1.3, { offset: true }) },
+    { name: 'diamonds', snd: 'diamonds', shape: 'diamond', hit: 0.4, lay: (n, w, h) => grid(n, w, h, 1.1, 0.55, { offset: true, max: 170 }) },
     { name: 'tiles',    off: true, shape: 'tri',     hit: 0.3, lay: (n, w, h) => grid(n, w, h, 0.58, 0.95, { max: 190 }) },
     // petals fall off and land on the ground
     { name: 'flower', lay: flower, reverse: true, goneScale: 0.45, goneMs: 2600, pos: petalPos, item: petal, halo: (X, p, q) => ({ rx: p.len * 0.58, ry: p.wid * 0.62, rot: q ? q.r : p.a }), before: stem, after: flowerCenter },
@@ -1897,6 +1897,42 @@
     o.start(t); o.stop(t + 0.1);
   }
 
+  // ---- soft tap sounds for the plain themes: a calm pentatonic note, each theme with its own gentle timbre ----
+  // (WebAudio, so the phone's silent switch mutes them like the end tone)
+  const CALM = [392, 440, 523.25, 587.33, 659.25, 783.99, 880, 1046.5];
+  let lastCalm = -1;
+  function tapChime(kind) {
+    if (!audio || audio.state === 'suspended') return;
+    const a = audio, t = a.currentTime + 0.01;
+    let k; do k = Math.floor(Math.random() * CALM.length); while (k === lastCalm);
+    lastCalm = k;
+    const f = CALM[k], out = a.createGain();
+    out.gain.value = 0.55;
+    out.connect(a.destination);
+    // a short soft echo so it feels like space, not a click
+    const echo = a.createDelay(1), fb = a.createGain(), wet = a.createGain();
+    echo.delayTime.value = 0.23; fb.gain.value = 0.3; wet.gain.value = 0.3;
+    out.connect(echo); echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(a.destination);
+    if (kind === 'snake') {            // a little liquid blip that slides down
+      voice(a, out, f * 1.5, t, 0.35, 0.16, 'sine', 0.008).frequency.exponentialRampToValueAtTime(f * 0.9, t + 0.25);
+    } else if (kind === 'spiral') {    // glassy FM bell
+      const c = voice(a, out, f * 1.5, t, 1.1, 0.13, 'sine', 0.006), m = a.createOscillator(), mg = a.createGain();
+      m.frequency.value = f * 1.5 * 1.41; mg.gain.setValueAtTime(f * 2, t); mg.gain.exponentialRampToValueAtTime(1, t + 0.8);
+      m.connect(mg).connect(c.frequency); m.start(t); m.stop(t + 1.2);
+    } else if (kind === 'clock') {     // a soft low wooden tock
+      voice(a, out, f * 0.5, t, 0.22, 0.28, 'sine', 0.004).frequency.exponentialRampToValueAtTime(f * 0.3, t + 0.15);
+      voice(a, out, f * 1.5, t, 0.08, 0.06, 'triangle', 0.003);
+    } else if (kind === 'honey') {     // warm round pluck
+      voice(a, out, f, t, 0.7, 0.2, 'triangle', 0.006);
+      voice(a, out, f * 2, t, 0.3, 0.05, 'sine', 0.006);
+    } else if (kind === 'rings') {     // airy shimmer of two detuned voices
+      for (const det of [-9, 9]) voice(a, out, f, t, 1.3, 0.1, 'sine', 0.05).detune.value = det;
+    } else {                           // diamonds: a high crystal ping, a fifth above
+      voice(a, out, f * 2, t, 0.9, 0.1, 'sine', 0.004);
+      voice(a, out, f * 3, t + 0.06, 0.7, 0.05, 'sine', 0.004);
+    }
+  }
+
   // ---- hedgehog ----
   // tapping the body: a happy hop with bristling spines, or a quick shake
   function hogMotion(X) {
@@ -2302,6 +2338,7 @@
         tints.set(i, { from: tn ? tn.to : base, to: nudge(base), t0: now });
       }
       if (M.tap) M.tap(geo, i);
+      if (M.snd) tapChime(M.snd);
       if (navigator.vibrate) navigator.vibrate(8);
       kick();
     } else if (MODES[look.m].bodyTap && MODES[look.m].bodyTap(geo, x, y)) {
