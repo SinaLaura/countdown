@@ -9,16 +9,17 @@
   #phone { position: relative; width: 360px; height: 640px; border-radius: 28px; overflow: hidden; box-shadow: 0 0 0 8px #111; }
   iframe { width: 100%; height: 100%; border: 0; display: block; }
   /* the demo hand: the same thing the app would draw over the real screen */
-  #finger { position: absolute; left: 0; top: 0; width: 44px; height: 44px; pointer-events: none; opacity: 0;
+  #finger { position: absolute; left: 0; top: 0; width: 30px; height: 90px; pointer-events: none; opacity: 0;
     transform: translate(200px, 700px); transition: transform .9s cubic-bezier(.4,0,.2,1), opacity .4s; }
-  /* a plain soft fingertip: one round dot with a thin ring, like the round bits of the app */
-  #finger i { display: block; width: 100%; height: 100%; box-sizing: border-box; border-radius: 50%; background: rgba(255,255,255,.78);
-    border: 2px solid rgba(255,255,255,.95); box-shadow: 0 0 0 8px rgba(255,255,255,.12), 0 4px 18px rgba(0,0,0,.35); transition: transform .14s; }
-  #finger.down i { transform: scale(.72); }
-  .ripple { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 2px solid #fff; opacity: .9;
+  /* a minimal finger: one soft capsule, slightly tilted, the tip is the touch point */
+  #finger { mix-blend-mode: difference; }
+  #finger i { display: block; width: 100%; height: 100%; box-sizing: border-box; border-radius: 15px 15px 6px 6px; transform-origin: 50% 12px;
+    background: linear-gradient(#fff, rgba(255,255,255,.55)); box-shadow: 0 4px 18px rgba(0,0,0,.35); transform: rotate(-14deg); transition: transform .14s; }
+  #finger.down i { transform: rotate(-14deg) scale(.9) translateY(4px); }
+  .ripple { mix-blend-mode: difference; position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 2px solid #fff; opacity: .9;
     pointer-events: none; animation: rip .6s ease-out forwards; }
   @keyframes rip { to { transform: scale(3.4); opacity: 0; } }
-  #cap { position: absolute; left: 0; right: 0; bottom: 130px; text-align: center; color: #fff; font-size: 15px; letter-spacing: .04em; opacity: 0; transition: opacity .4s; pointer-events: none; text-shadow: 0 1px 6px #000; }
+  #cap { mix-blend-mode: difference; position: absolute; left: 0; right: 0; top: 150px; text-align: center; color: #fff; font-size: 15px; letter-spacing: .04em; opacity: 0; transition: opacity .4s; pointer-events: none; }
   button { font: inherit; padding: 6px 14px; }
 </style>
 </head>
@@ -28,11 +29,11 @@
   <div id="finger"><i></i></div>
   <div id="cap"></div>
 </div>
-<div>Preview of the first-use hint (tap an item, then the background). <button id="again">Replay</button></div>
+<div>Preview of the first-use hint (one tap on the empty background). <button id="again">Replay</button></div>
 <script>
   const app = document.getElementById('app'), fin = document.getElementById('finger'), cap = document.getElementById('cap'), phone = document.getElementById('phone');
   const wait = ms => new Promise(r => setTimeout(r, ms));
-  const move = (x, y) => { fin.style.transform = `translate(${x - 22}px, ${y - 22}px)`; return wait(950); };
+  const move = (x, y) => { fin.style.transform = `translate(${x - 15}px, ${y - 12}px)`; return wait(950); };
   // the finger really taps: the event goes to the real app inside the frame
   async function tap(x, y) {
     fin.classList.add('down');
@@ -50,8 +51,6 @@
     say(''); fin.style.opacity = 0; fin.style.transform = 'translate(200px, 700px)';
     await wait(1200); if (!ok()) return;
     fin.style.opacity = 1;
-    await move(105, 165); if (!ok()) return;       // on a bit
-    await tap(105, 165); await wait(900); if (!ok()) return;
     await move(190, 440); if (!ok()) return;       // on the empty background
     say('tap the void'); await tap(190, 440); await wait(1600); if (!ok()) return;
     say(''); fin.style.opacity = 0;
