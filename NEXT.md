@@ -6,10 +6,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## To do
 
-- [ ] When you use the app the first time, can you demonstrate a finger tapping on the screen to change the timebits? Show a preview on localhost before implementing.
 
 ## In progress
 
+- [ ] When you use the app the first time, can you demonstrate a finger tapping on the screen to change the timebits? Show a preview on localhost before implementing. (finger-demo session, started 12:30 - building the preview page only)
 
 ## Done
 
