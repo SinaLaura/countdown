@@ -56,6 +56,9 @@ Neue generelle Wünsche des Users hier ergänzen. Theme-Ideen und -Stand stehen 
 ## Barrierefreiheit
 - Bei `prefers-reduced-motion` gibt es keine Dauer-Animationen (`still`).
 
+## Privatsphäre
+- Nichts Privates veröffentlichen (Commits, Code, Kommentare, Dateien im Repo, GitHub): keine Namen anderer Personen, keine Chats, nicht wer etwas angeregt hat. Im Zweifel vorher fragen.
+
 ## Zusammenarbeit (mehrere Claude-Sitzungen arbeiten parallel)
 - `docs/index.html` direkt vor dem Bearbeiten frisch lesen und nie aus einem alten Stand komplett neu schreiben.
 - Nach jeder fertigen Änderung sofort committen, und zwar nur die eigenen Dateien mit expliziten Pfaden, kein `git add -A`.
