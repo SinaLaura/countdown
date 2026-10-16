@@ -16,15 +16,14 @@
   .ripple { mix-blend-mode: difference; position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 2px solid #fff; opacity: .9;
     pointer-events: none; animation: rip .6s ease-out forwards; }
   @keyframes rip { to { transform: scale(3.4); opacity: 0; } }
-  #cap { mix-blend-mode: difference; position: absolute; left: 0; right: 0; top: 150px; text-align: center; color: #fff; font-size: 15px; letter-spacing: .04em; opacity: 0; transition: opacity .4s; pointer-events: none; }
+  #cap { position: absolute; left: 28px; top: -30px; transform: translateX(-50%); white-space: nowrap; color: #fff; font-size: 15px; letter-spacing: .04em; opacity: 0; transition: opacity .4s; }
   button { font: inherit; padding: 6px 14px; }
 </style>
 </head>
 <body>
 <div id="phone">
   <iframe id="app" src="./?m=10&look=honey"></iframe>
-  <div id="finger"><svg viewBox="0 0 56 56" width="56" height="56"><path d="M20 6c-2.6 0-4 1.8-4 4v20l-3.2-3c-1.6-1.4-4-1.2-5.2.5-1 1.4-.8 3 .4 4.2L18 47c2 2.2 4.4 3 7 3h8c5.5 0 9-3.6 9-9V28c0-2-1.4-3.4-3.2-3.4-.8 0-1.6.3-2.2.9-.4-1.6-1.6-2.5-3.2-2.5-1 0-1.9.4-2.5 1.1-.5-1.5-1.6-2.3-3.1-2.3-.6 0-1.2.2-1.7.5V10c0-2.2-1.4-4-4-4z" fill="#fff"/></svg></div>
-  <div id="cap"></div>
+  <div id="finger"><div id="cap"></div><svg viewBox="0 0 56 56" width="56" height="56"><path d="M20 6c-2.6 0-4 1.8-4 4v20l-3.2-3c-1.6-1.4-4-1.2-5.2.5-1 1.4-.8 3 .4 4.2L18 47c2 2.2 4.4 3 7 3h8c5.5 0 9-3.6 9-9V28c0-2-1.4-3.4-3.2-3.4-.8 0-1.6.3-2.2.9-.4-1.6-1.6-2.5-3.2-2.5-1 0-1.9.4-2.5 1.1-.5-1.5-1.6-2.3-3.1-2.3-.6 0-1.2.2-1.7.5V10c0-2.2-1.4-4-4-4z" fill="#fff"/></svg></div>
 </div>
 <div>Preview of the first-use hint (the finger shows how to tap; your own tap ends it). <button id="again">Replay</button></div>
 <script>
