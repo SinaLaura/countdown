@@ -9,11 +9,11 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] The sound of the boring themes seems to not work on the first click, but only at the second? (tap-sounds2 session, started 13:00)
-- [ ] The boring themes that have sound should not make a sound in pause mode. That is for every theme. (tap-sounds2 session, started 13:00)
 
 ## Done
 
+- [x] The sound of the boring themes seems to not work on the first click, but only at the second? (9de9785) → http://localhost:8765/?m=10&look=honey (tap once: sound on the first tap; pause, tap: silent; also ducks, hedgehog)
+- [x] The boring themes that have sound should not make a sound in pause mode. That is for every theme. (9de9785) → http://localhost:8765/?m=10&look=honey (tap once: sound on the first tap; pause, tap: silent; also ducks, hedgehog)
 - [x] First-use finger tap demo: preview page only, not in the app yet (09bdd38) → http://localhost:8765/test-finger.html
 - [x] Calming short sounds when clicking items of the boring themes (just them): soft, a bit futuristic, WebAudio so the silent switch is respected (faa695a) → http://localhost:8765/?m=10&look=snake (also spiral, clock, honey, rings, diamonds; tap an item)
 - [x] For a lot of ducks it looks weak because they are too small. (06a740d) → http://localhost:8765/?m=60&look=ducks (many ducklings follow their mother on one winding path over the whole pond; try &m=25, &m=150, compare &m=10)
