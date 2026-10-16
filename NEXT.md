@@ -9,10 +9,10 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
-- [ ] When you use the app the first time, can you demonstrate a finger tapping on the screen to change the timebits? Show a preview on localhost before implementing. (finger-demo session, started 12:30 - building the preview page only)
 
 ## Done
 
+- [x] First-use finger tap demo: preview page only, not in the app yet (09bdd38) → http://localhost:8765/test-finger.html
 - [x] Calming short sounds when clicking items of the boring themes (just them): soft, a bit futuristic, WebAudio so the silent switch is respected (faa695a) → http://localhost:8765/?m=10&look=snake (also spiral, clock, honey, rings, diamonds; tap an item)
 - [x] For a lot of ducks it looks weak because they are too small. (06a740d) → http://localhost:8765/?m=60&look=ducks (many ducklings follow their mother on one winding path over the whole pond; try &m=25, &m=150, compare &m=10)
 - [x] Remove the "Round and round." text. (870e44c) → http://localhost:8765/ (choose „Pomodoro“: the sentence ends after „break.“)
