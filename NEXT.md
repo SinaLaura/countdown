@@ -9,6 +9,8 @@ Claude picks up the top open item whenever it is free, moves it to **In progress
 
 ## In progress
 
+- [ ] The sound of the boring themes seems to not work on the first click, but only at the second? (tap-sounds2 session, started 13:00)
+- [ ] The boring themes that have sound should not make a sound in pause mode. That is for every theme. (tap-sounds2 session, started 13:00)
 
 ## Done
 
