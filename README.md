@@ -1,6 +1,6 @@
-# Countdown
+# Timebits
 
-A minimal countdown for your phone or browser. Set the minutes, press Start, and watch time pass one small item at a time.
+A minimal countdown and Pomodoro timer for your phone or browser. Set the minutes, press Start, and watch time pass one small item at a time.
 
 Tap an item and it reacts. Tap the empty background and the whole look changes. Pause whenever you need a break; the time waits for you.
 

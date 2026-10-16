@@ -1,7 +1,7 @@
 {
-  "name": "Countdown",
-  "short_name": "Countdown",
-  "description": "A minimal countdown. Tap to change the look.",
+  "name": "Timebits",
+  "short_name": "Timebits",
+  "description": "A minimal countdown and Pomodoro timer. Tap to change the look.",
   "lang": "en",
   "start_url": "./",
   "scope": "./",

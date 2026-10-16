@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Countdown</title>
+<title>Timebits</title>
 <meta name="theme-color" content="#17171c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Countdown">
+<meta name="apple-mobile-web-app-title" content="Timebits">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -174,7 +174,7 @@
 
 <script>
   const $ = id => document.getElementById(id);
-  const TITLE = 'Countdown';
+  const TITLE = 'Timebits';
   // no zooming: iOS Safari ignores user-scalable=no, desktop zooms with ctrl + wheel or keys
   for (const ev of ['gesturestart', 'gesturechange', 'dblclick']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
