@@ -50,8 +50,9 @@
   }
   #label:focus { border-color: var(--fg); }
   #label::placeholder { color: var(--text); opacity: .35; }
-  .seg { display: flex; justify-content: center; gap: 28px; }
-  .seg button { font-size: 15px; padding: 6px 2px; opacity: .4; border-bottom: 2px solid transparent; }
+  .seg { display: flex; justify-content: center; align-items: center; gap: 12px; }
+  .seg button + button::before { content: "/"; position: absolute; left: -8px; top: 6px; color: var(--text); opacity: .4; }
+  .seg button { font-size: 15px; padding: 6px 2px; opacity: .4; position: relative; border-bottom: 2px solid transparent; }
   .seg button[aria-pressed="true"] { opacity: 1; border-color: var(--fg); }
   .stepper { display: flex; align-items: center; justify-content: center; gap: 12px; }
   .step {
